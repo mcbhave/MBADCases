@@ -1,0 +1,84 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using MBADCases.Models;
+using Microsoft.Extensions.Options;
+using MBADCases.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+
+namespace MBADCases
+{
+    public class Startup
+    {
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public IConfiguration Configuration { get; }
+
+        // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddMvc(setupAction =>
+            {
+                setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status200OK));
+                setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status400BadRequest));
+                setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status401Unauthorized));
+                setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status404NotFound ));
+                setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status409Conflict));
+                setupAction.ReturnHttpNotAcceptable = true;
+
+
+            });
+
+            // requires using Microsoft.Extensions.Options
+            services.Configure<CasesDatabaseSettings>(
+            Configuration.GetSection(nameof(CasesDatabaseSettings)));
+
+            services.AddSingleton<ICasesDatabaseSettings>(sp =>
+                sp.GetRequiredService<IOptions<CasesDatabaseSettings>>().Value);
+
+            services.AddSingleton<CaseService>();
+
+            //services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions);
+
+            //services.AddAuthentication("Basic").AddScheme<AuthenticationSchemeOptions, Authentication.BasicAuthenticationHandler>("Basic", null);
+
+            services.AddControllers();
+        }
+
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                
+            });
+
+            
+        }
+    }
+}

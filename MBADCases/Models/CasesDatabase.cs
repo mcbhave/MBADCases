@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace MBADCases.Models
+{
+    public class CasesDatabaseSettings : ICasesDatabaseSettings
+    {
+        public string CasesCollectionName { get; set; }
+        public string ConnectionString { get; set; }
+        public string DatabaseName { get; set; }
+    }
+
+    public interface ICasesDatabaseSettings
+    {
+        string CasesCollectionName { get; set; }
+        string ConnectionString { get; set; }
+        string DatabaseName { get; set; }
+    }
+}
