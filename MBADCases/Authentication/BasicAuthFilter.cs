@@ -17,7 +17,7 @@ namespace MBADCases.Authentication
 {
     public class BasicAuthFilter : Attribute, IAuthorizationFilter
     {
-        private readonly string _realm;
+        private readonly string _realm = string.Empty;
 
         public BasicAuthFilter()
         {

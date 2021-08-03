@@ -36,145 +36,16 @@ namespace MBADCases.Controllers
         [Route("find/{id?}")]
         [HttpPost]
         public IActionResult find(WixDB.find id)
-        {
-
-            List<WixDB.Schema> lsch = new List<WixDB.Schema>();
- 
-             IDictionary<string, FieldValue> ofields = new Dictionary<string, FieldValue>();
-            ofields.Add(new KeyValuePair<string,FieldValue>("_id",
-                       new FieldValue()
-                        {
-                            DisplayName = "_id",
-                            QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                            Type = "text"
-                       })
-                );
-            ofields.Add(new KeyValuePair<string, FieldValue>("_owner",
-                      new FieldValue()
-                      {
-                          DisplayName = "_owner",
-                          QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                          Type = "text"
-                      })
-               );
-            ofields.Add(new KeyValuePair<string, FieldValue>("make",
-                    new FieldValue()
-                    {
-                        DisplayName = "make",
-                        QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                        Type = "text"
-                    })
-             );
-            ofields.Add(new KeyValuePair<string, FieldValue>("model",
-                    new FieldValue()
-                    {
-                        DisplayName = "model",
-                        QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                        Type = "text"
-                    })
-             );
-            ofields.Add(new KeyValuePair<string, FieldValue>("year",
-                 new FieldValue()
-                 {
-                     DisplayName = "year",
-                     QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                     Type = "number"
-                 })
-          );
-            ofields.Add(new KeyValuePair<string, FieldValue>("date_added",
-                 new FieldValue()
-                 {
-                     DisplayName = "date_added",
-                     QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                     Type = "datetime"
-                 })
-          );
-
-
-            WixDB.Schema osch = new WixDB.Schema
+        {           
+           var lsch =   GetAllSchemasfromDB();
+            List<WixDB.Schema> filteredlist = new List<WixDB.Schema>();
+            if (lsch != null)
             {
-                DisplayName = "Car",
-                Id = "car",
-                AllowedOperations = new string[] { "get", "find", "count", "update", "insert", "remove" },
-                MaxPageSize=50,
-                ttl = 3600,
-                Fields = ofields 
-            };
-            lsch.Add(osch);
+                //filteredlist=  lsch.Where(x => id.schemaIds.Contains(x.Id.ToLower())).ToList<WixDB.Schema>();
+                filteredlist = lsch.Where(x => id.schemaIds.Contains(x.Id)).ToList<WixDB.Schema>();
+            }
+            WixDB.DBSchemas osc = new WixDB.DBSchemas { Schemas = filteredlist };
 
-
-
-            ///second schema manufracture
-
-            ofields = new Dictionary<string, FieldValue>();
-            ofields.Add(new KeyValuePair<string, FieldValue>("_id",
-                       new FieldValue()
-                       {
-                           DisplayName = "_id",
-                           QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                           Type = "text"
-                           
-                       })
-                );
-            ofields.Add(new KeyValuePair<string, FieldValue>("_owner",
-                      new FieldValue()
-                      {
-                          DisplayName = "_owner",
-                          QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                          Type = "text"
-                      })
-               );
-            ofields.Add(new KeyValuePair<string, FieldValue>("name",
-                    new FieldValue()
-                    {
-                        DisplayName = "name",
-                        QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                        Type = "text"
-                    })
-             );
-            ofields.Add(new KeyValuePair<string, FieldValue>("country",
-                    new FieldValue()
-                    {
-                        DisplayName = "country",
-                        QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                        Type = "text"
-                    })
-             );
-            ofields.Add(new KeyValuePair<string, FieldValue>("share_price",
-                 new FieldValue()
-                 {
-                     DisplayName = "share_price",
-                     QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                     Type = "number"
-                 })
-          );
-            ofields.Add(new KeyValuePair<string, FieldValue>("established",
-                 new FieldValue()
-                 {
-                     DisplayName = "established",
-                     QueryOperators = new string[] { "eq","lt","gt","hasSome","and","lte","gte","or","not","ne","startsWith","endsWith" },
-                     Type = "datetime"
-                 })
-          );
-
-
-             osch = new WixDB.Schema
-            {
-                DisplayName = "Manufacturer",
-                Id = "manufacturer",
-                AllowedOperations = new string[] { "get", "find", "count", "update", "insert", "remove" },
-                 MaxPageSize = 50,
-                 ttl=3600,
-                 Fields = ofields
-
-
-            };
-            lsch.Add(osch);
-
-
-            WixDB.DBSchemas osc = new WixDB.DBSchemas { Schemas = lsch };
-            
-         
             return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, osc);
         }
 
@@ -185,34 +56,62 @@ namespace MBADCases.Controllers
         {
             List<WixDB.Schema> lsch = new List<WixDB.Schema>();
 
-            WixDB.Schema osch = GetSchema("Tenants", "List of All Tenants", 50, 3600);
+            WixDB.Schema osch = GetSchema("tenants", "Tenants", 50, 3600);
             lsch.Add(osch);
 
-            osch = GetSchema("Case Types", "All case types", 50, 3600);
+            osch = GetSchema("casetypes", "Case Types", 50, 3600);
             lsch.Add(osch);
 
-            osch = GetSchema("Case1", "My Case Type 1", 50, 3600);
+            osch = GetSchema("casetypefields", "Case Type Fields", 50, 3600);
             lsch.Add(osch);
+            string sjson = Newtonsoft.Json.JsonConvert.SerializeObject(lsch);
+
 
             WixDB.DBSchemas osc = new WixDB.DBSchemas { Schemas = lsch };
-            
+           
             return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, osc);
+        }
+
+        private static List<WixDB.Schema> GetAllSchemasfromDB()
+        {
+            string spath =   "Models/Schemas.json";
+            string sSchemas = System.IO.File.ReadAllText(spath);
+            List<WixDB.Schema> lsch =   Newtonsoft.Json.JsonConvert.DeserializeObject<List<WixDB.Schema>>(sSchemas);
+
+            return lsch;
         }
 
         private static WixDB.Schema GetSchema(string name, string description ,int maxPage, int ttl)
         {
             WixDB.Schema osch = new WixDB.Schema
             {
-                DisplayName = name,
-                Id = description,
+                DisplayName = description,
+                Id = name,
                 AllowedOperations = new string[] { "get", "find", "count", "update", "insert", "remove" },
                 MaxPageSize = 50,
                 ttl = 3600,
-                Fields = GetFields()
+                Fields = GetFields(name)
             };
             return osch;
         }
-        private static IDictionary<string, FieldValue> GetFields()
+        private static IDictionary<string,FieldValue> GetFields(string name)
+        {
+            IDictionary<string, FieldValue> ofields=null;
+            switch (name.ToLower())
+            {
+                case "tenants":
+                    ofields= GetTenantFields();
+                    break;
+                case "casetypes":
+                    ofields = GetCaseTypes();
+                    break;
+                case "casetypefields":
+                    ofields = GetCaseTypeFields();
+                    break;
+            }
+            return ofields;
+        }
+        private static IDictionary<string, FieldValue> GetWixFields()
         {
             IDictionary<string, FieldValue> ofields = new Dictionary<string, FieldValue>();
             ofields.Add(new KeyValuePair<string, FieldValue>("_id",
@@ -231,40 +130,106 @@ namespace MBADCases.Controllers
                           Type = "text"
                       })
                );
-            ofields.Add(new KeyValuePair<string, FieldValue>("make",
-                    new FieldValue()
-                    {
-                        DisplayName = "make",
-                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
-                        Type = "text"
-                    })
-             );
-            ofields.Add(new KeyValuePair<string, FieldValue>("model",
-                    new FieldValue()
-                    {
-                        DisplayName = "model",
-                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
-                        Type = "text"
-                    })
-             );
-            ofields.Add(new KeyValuePair<string, FieldValue>("year",
-                 new FieldValue()
-                 {
-                     DisplayName = "year",
-                     QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
-                     Type = "number"
-                 })
-          );
-            ofields.Add(new KeyValuePair<string, FieldValue>("date_added",
-                 new FieldValue()
-                 {
-                     DisplayName = "date_added",
-                     QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
-                     Type = "datetime"
-                 })
-          );
 
             return ofields;
         }
+        private static IDictionary<string, FieldValue> GetTenantFields()
+        {
+            IDictionary<string, FieldValue> ofields = GetWixFields();
+            ofields.Add(new KeyValuePair<string, FieldValue>("tenantname",
+                    new FieldValue()
+                    {
+                        DisplayName = "Tenant Name",
+                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                        Type = "text"
+                    })
+             );
+            ofields.Add(new KeyValuePair<string, FieldValue>("tenantdesc",
+                    new FieldValue()
+                    {
+                        DisplayName = "Tenant Description",
+                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                        Type = "text"
+                    })
+             );
+            
+            return ofields;
+        }
+        private static IDictionary<string, FieldValue> GetCaseTypes()
+        {
+            IDictionary<string, FieldValue> ofields = GetWixFields();
+            ofields.Add(new KeyValuePair<string, FieldValue>("tenantid",
+                    new FieldValue()
+                    {
+                        DisplayName = "Tenant Id",
+                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                        Type = "text"
+                    })
+             );
+            ofields.Add(new KeyValuePair<string, FieldValue>("casetypename",
+                    new FieldValue()
+                    {
+                        DisplayName = "Case Type Description",
+                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                        Type = "text"
+                    })
+             );
+            ofields.Add(new KeyValuePair<string, FieldValue>("casetypedesc",
+                  new FieldValue()
+                  {
+                      DisplayName = "Case Type Description",
+                      QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                      Type = "text"
+                  })
+           );
+            return ofields;
+        }
+
+        private static IDictionary<string, FieldValue> GetCaseTypeFields()
+        {
+            IDictionary<string, FieldValue> ofields = GetWixFields();
+            ofields.Add(new KeyValuePair<string, FieldValue>("tenantid",
+                    new FieldValue()
+                    {
+                        DisplayName = "Tenant Id",
+                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                        Type = "text"
+                    })
+             );
+            ofields.Add(new KeyValuePair<string, FieldValue>("casetypeid",
+                    new FieldValue()
+                    {
+                        DisplayName = "Case Type Id",
+                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                        Type = "text"
+                    })
+             );
+            ofields.Add(new KeyValuePair<string, FieldValue>("fieldname",
+                  new FieldValue()
+                  {
+                      DisplayName = "Field Name",
+                      QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                      Type = "text"
+                  })
+           );
+            ofields.Add(new KeyValuePair<string, FieldValue>("fielddesc",
+                 new FieldValue()
+                 {
+                     DisplayName = "Field Description",
+                     QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                     Type = "text"
+                 })
+          ); 
+            ofields.Add(new KeyValuePair<string, FieldValue>("fieldtype",
+                  new FieldValue()
+                  {
+                      DisplayName = "Field Type",
+                      QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                      Type = "text"
+                  })
+           );
+            return ofields;
+        }
+      
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static MBADCases.Models.WixDB;
 
 namespace MBADCases.Models
 {
@@ -31,15 +32,15 @@ namespace MBADCases.Models
             [JsonProperty("defaultSort")]
             public defaultSort defaultSort { get; set; }
 
-             
-            
+
+
         }
         public class DBSchemas
         {
             [JsonProperty("Schemas")]
             public List<Schema> Schemas { get; set; }
-           
-            
+
+
         }
         public partial class RequestContext
         {
@@ -63,20 +64,48 @@ namespace MBADCases.Models
             public RequestContext RequestContext { get; set; }
 
         }
-        public class data
+
+        public class  data 
         {
             public RequestContext RequestContext { get; set; }
             public string collectionName { get; set; }
+           
+            public dynamic item  { get; set; }
 
-            public item item { get; set; }
-            
         }
-        public class DataItem
+
+       
+
+public class DataItem<T>
+    {
+        private T _value;
+
+        public T item
         {
-            public item item { get; set; }
-            
+            get
+            {
+                // insert desired logic here
+                return _value;
+            }
+            set
+            {
+                // insert desired logic here
+                _value = value;
+            }
         }
-        public class DataCount
+
+        public static implicit operator T(DataItem<T> value)
+        {
+            return value.item;
+        }
+
+        public static implicit operator DataItem<T>(T value)
+        {
+            return new DataItem<T> { item = value };
+        }
+            
+    }
+    public class DataCount
         {
             public int totalCount { get; set; }
            
@@ -94,13 +123,14 @@ namespace MBADCases.Models
             public int totalCount { get; set; }
             
         }
-        public class FindItems
+       
+        public class FindItems<T>
         {
 
-            public List<item> items { get; set; }
+            public List<T> items { get; set; }
             public FindItems()
             {
-                items = new List<item>();
+                items = new List<T>();
             }
 
             public int totalCount { get; set; }
@@ -108,29 +138,8 @@ namespace MBADCases.Models
         }
         public class item
         {
-            [JsonProperty("_id")]
             public string _id { get; set; }
-
-            [JsonProperty("_owner")]
             public string _owner { get; set; }
-
-
-            [JsonProperty("make")]
-            public string make { get; set; }
-
-
-            [JsonProperty("model")]
-            public string model { get; set; }
-
-          
-
-            [JsonProperty("year")]
-            public int year { get; set; }
-
-            [JsonProperty("date_added")]
-            public string date_added { get; set; }
-           
-            
         }
         public class DateAdded
         {

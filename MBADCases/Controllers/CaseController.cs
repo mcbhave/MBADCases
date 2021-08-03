@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 using MBADCases.Models;
 using Microsoft.AspNetCore.Authorization;
 using MBADCases.Authentication;
+using MongoDB.Bson;
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace MBADCases.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     [BasicAuthFilter()]
     public class CaseController : ControllerBase
@@ -31,22 +32,24 @@ namespace MBADCases.Controllers
 
         // GET api/<CaseController>/5
         [HttpGet("{id:length(24)}", Name = "GetCase")]
-        public Case Get(string id)
+        public string Get(string id)
         {
-            var ocase =  _caseservice.Get(id);
-           
-            if (ocase == null)
-            {
-                ocase = new Models.Case() { Casetype="",_id="" };
-                return ocase;
-            }
+            BsonDocument ocase =  _caseservice.Get(id);
 
-            return ocase;
+            //if (ocase == null)
+            //{
+            //    ocase = new Case { };
+            //    return ocase;
+            //}
+
+            return ocase.ToJson<BsonDocument>();
         }
 
         // POST api/<CaseController>
+        [Route("Update")]
+        [Route("Update/{id?}")]
         [HttpPost]
-        public void Post([FromBody] string value)
+        public void Post(Case value)
         {
         }
 
@@ -54,10 +57,12 @@ namespace MBADCases.Controllers
         [HttpPut("{CaseType}")]
         public CreatedAtRouteResult Put(string CaseType, Case ocase)
         {
-            // ocase = new Models.Case() { Casetype = "Dispute", Id = "" };
-            if(ocase.Casetype != CaseType) { ocase.Casetype = CaseType; }
-            var oretcase= _caseservice.Create(ocase);
             
+            // ocase = new Models.Case() { Casetype = "Dispute", Id = "" };
+            if (ocase.Casetype != CaseType) { ocase.Casetype = CaseType; }
+
+            //var oretcase = _caseservice.Create(ocase);
+
             return CreatedAtRoute("GetCase", new { id = ocase._id.ToString()  }, ocase);
         }
 
