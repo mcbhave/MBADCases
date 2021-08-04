@@ -10,11 +10,13 @@ namespace MBADCases.Models
         public string CasesCollectionName { get; set; }
         public string ConnectionString { get; set; }
         public string DatabaseName { get; set; }
+        public string MessagesCollectionName { get; set ; }
     }
 
     public interface ICasesDatabaseSettings
     {
         string CasesCollectionName { get; set; }
+        string MessagesCollectionName { get; set; }
         string ConnectionString { get; set; }
         string DatabaseName { get; set; }
     }

@@ -5,12 +5,11 @@ using System.Collections.Generic;
 
 namespace MBADCases.Models
 {
-    public class Case 
-    {
-        public Case()
+    public class Case  
+    {        public Case()
         {
             Caseattributes = new List<Caseattribute>();
-            CaseTasks = new List<CaseTask>();
+            CaseActions = new List<CaseAction>();
         }
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
@@ -21,8 +20,24 @@ namespace MBADCases.Models
         public string Casetype { get; set; }
         public string Casestatus { get; set; }
         public string Casedescription { get; set; }
+        public string Createdate { get; set; }
+        public string Createuser { get; set; }
+
+        public string Updatedate { get; set; }
+        public string Updateuser { get; set; }
+        public string Sladate { get; set; }
+         
         public List<Caseattribute> Caseattributes { get; set; }
-        public List<CaseTask> CaseTasks { get; set; }
+        public List<CaseAction> CaseActions { get; set; }
+
+        public ReturnMessage Message { get; set; }
+    }
+    public class ReturnMessage
+    {
+        public string _id { get; set; }
+        public string Messageype { get; set; }
+        public string Messagecode { get; set; }
+        public string MessageDesc { get; set; }
     }
     public class Option
     {
@@ -40,7 +55,7 @@ namespace MBADCases.Models
         public string Value { get; set; }
         public List<Option> Options { get; set; }
     }
-    public class CaseTask
+    public class CaseAction
     {
         public string Id { get; set; }
         public string Name { get; set; }

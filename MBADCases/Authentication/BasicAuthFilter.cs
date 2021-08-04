@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
@@ -46,7 +47,8 @@ namespace MBADCases.Authentication
                             //if (IsAuthorized(context, credentials[0], credentials[1]))
                             //{
                             //    return;
-
+                            context.HttpContext.Session.SetString("mbadtanent", credentials[0]);
+                            
                             return;
                             //}
                         }

@@ -41,6 +41,13 @@ namespace MBADCases
 
 
             });
+
+            services.AddDistributedMemoryCache();
+            services.AddSession(options => {
+                options.IdleTimeout = TimeSpan.FromMinutes(1);//You can set Time   
+            });
+            
+
             services.AddApiVersioning(x =>
             {
                 x.DefaultApiVersion = new ApiVersion(1,0);
@@ -74,6 +81,8 @@ namespace MBADCases
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseSession();
 
             app.UseAuthorization();
 
