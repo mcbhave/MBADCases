@@ -29,16 +29,10 @@ namespace MBADCases.Models
          
         public List<Caseattribute> Caseattributes { get; set; }
         public List<CaseAction> CaseActions { get; set; }
+        public MessageResponse Message { get; set; }
 
-        public ReturnMessage Message { get; set; }
     }
-    public class ReturnMessage
-    {
-        public string _id { get; set; }
-        public string Messageype { get; set; }
-        public string Messagecode { get; set; }
-        public string MessageDesc { get; set; }
-    }
+     
     public class Option
     {
         public string Id { get; set; }

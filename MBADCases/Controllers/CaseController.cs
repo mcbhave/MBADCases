@@ -42,19 +42,25 @@ namespace MBADCases.Controllers
             var usrid = HttpContext.Session.GetString("mbadtanent");
             try
             {
+                _caseservice.Gettenant(usrid);
+
                 Case ocase = _caseservice.Get(id);
-                oms = _caseservice.SetMessage(ocase, id, id, "GET", "200", "Case Searched", usrid, null);
-                ocase.Message = new ReturnMessage { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
+                oms = _caseservice.SetMessage(ICaseTypes.CASE, id, id, "GET", "200", "Case Searched", usrid, null);
+                if (ocase == null)
+                {
+                    ocase = new Case();
+                }
+                ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
 
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
             }
             catch (Exception ex)
             {
                 Case ocase = new Case();
-                oms = _caseservice.SetMessage(ocase, id, id, "GET", "", "", usrid, ex);
-                ocase.Message = new ReturnMessage { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
-
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, ocase);
+                ocase._id = id;
+                oms = _caseservice.SetMessage(ICaseTypes.CASE, id, id, "GET", "", "", usrid, ex);
+ 
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
             }
         }
         [MapToApiVersion("2.0")]
@@ -65,46 +71,47 @@ namespace MBADCases.Controllers
             var usrid = HttpContext.Session.GetString("mbadtanent");
             try
             {
+                _caseservice.Gettenant(usrid);
+
                 Case ocase = _caseservice.Get(id);
-                oms = _caseservice.SetMessage(ocase, id, id, "GET", "200", "Case Searched", usrid, null);
-                ocase.Message = new ReturnMessage { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
+                oms = _caseservice.SetMessage(ICaseTypes.CASE, id, id, "GET", "200", "Case Searched", usrid, null);
+
+                ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
 
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
             }
             catch (Exception ex)
             {
                 Case ocase = new Case();
-                oms = _caseservice.SetMessage(ocase, id, id, "GET", "", "", usrid, ex);
-                ocase.Message = new ReturnMessage { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
-
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, ocase);
+                ocase._id = id;
+                oms = _caseservice.SetMessage(ICaseTypes.CASE, id, id, "GET", "", "", usrid, ex);
+ 
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
             }
 
         }
         // POST api/<CaseController>
         [MapToApiVersion("1.0")]
         [HttpPost]
-        public IActionResult Post(Case value)
+        public IActionResult Post(Case ocase)
         {
             Message oms;
             var usrid = HttpContext.Session.GetString("mbadtanent");
-            string sj = value.Caseattributes.ToJson();
-            string id = value._id;
+            string sj = ocase.Caseattributes.ToJson();
+            string id = ocase._id;
             try
             {
-              
-                _caseservice.Update(value._id, value.Caseattributes);
-                  oms = _caseservice.SetMessage(value, value._id,sj, "POST", "UPDATE", "Case update", usrid, null);
-                value.Message = new ReturnMessage { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, value);
+                _caseservice.Gettenant(usrid);
+
+                _caseservice.Update(ocase._id, ocase.Caseattributes);
+                  oms = _caseservice.SetMessage(ICaseTypes.CASE, ocase._id,sj, "POST", "UPDATE", "Case update", usrid, null);
+                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseResponse(ocase, oms));
             }
             catch(Exception ex)
             {
-                Case ocase=new Case(); 
-
-                oms = _caseservice.SetMessage(ocase,id, sj, "POST", "UPDATE", "Case update", usrid, ex);
-                ocase.Message = new ReturnMessage { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, ocase);
+                 
+                oms = _caseservice.SetMessage(ICaseTypes.CASE, id, sj, "POST", "UPDATE", "Case update", usrid, ex);
+                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
             }
           
         }
@@ -117,19 +124,24 @@ namespace MBADCases.Controllers
             var usrid = HttpContext.Session.GetString("mbadtanent");
             string sj = ocase.Caseattributes.ToJson();
             string id = ocase._id;
+            string createuserid = ocase.Createuser;
             try
             {
+                _caseservice.Gettenant(usrid);
+
                 if (ocase.Casetype != CaseType) { ocase.Casetype = CaseType; }
+                if (ocase.Updateuser == null) { ocase.Updateuser = createuserid; }
+                if (ocase.Createdate == null) { ocase.Createdate = DateTime.UtcNow.ToString(); }
+                if (ocase.Updatedate == null) { ocase.Updatedate = DateTime.UtcNow.ToString(); }
                 var oretcase = _caseservice.Create(ocase);
-                oms = _caseservice.SetMessage(ocase, id, sj, "PUT", "200", "Case insert", usrid, null);
-                ocase.Message = new ReturnMessage { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
-                return CreatedAtRoute("GetCase", new { id = ocase._id.ToString() }, ocase);
+                oms = _caseservice.SetMessage(ICaseTypes.CASE, oretcase._id, sj, "PUT", "200", "Case insert", createuserid, null);
+
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
             }
             catch(Exception ex)
             {
-                oms = _caseservice.SetMessage(ocase, id, sj, "PUT", "", "Case insert", usrid, ex);
-                ocase.Message = new ReturnMessage { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, ocase);
+                oms = _caseservice.SetMessage(ICaseTypes.CASE, id, sj, "PUT", "", "Case insert", createuserid, ex);
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
                  
             }
            
@@ -146,16 +158,16 @@ namespace MBADCases.Controllers
            // string id = ocase._id;
             try
             {
+                _caseservice.Gettenant(usrid);
+
                 _caseservice.Remove(id);
-                oms = _caseservice.SetMessage(ocase, id, id, "DELETE", "200", "Case delete", usrid, null);
-                ocase.Message = new ReturnMessage { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, ocase);
+                oms = _caseservice.SetMessage(ICaseTypes.CASE, id, id, "DELETE", "200", "Case delete", usrid, null);
+                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
             }
             catch (Exception ex)
             {
-                oms = _caseservice.SetMessage(ocase, id, id, "DELETE", "200", "Case delete", usrid, ex);
-                ocase.Message = new ReturnMessage { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, ocase);
+                oms = _caseservice.SetMessage(ICaseTypes.CASE, id, id, "DELETE", "200", "Case delete", usrid, ex);
+                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
 
             }
         }

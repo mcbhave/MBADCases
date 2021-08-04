@@ -11,14 +11,14 @@ namespace MBADCases.Services
     public class MessageService
     {
         private readonly IMongoCollection<Message> _message;
-        private IMongoDatabase database;
-        public MessageService(ICasesDatabaseSettings settings)
+        public  IMongoDatabase _database;
+        public MessageService(ICasesDatabaseSettings settings, IMongoDatabase TenantDatabase)
         {
             var client = new MongoClient(settings.ConnectionString);
-            database = client.GetDatabase(settings.DatabaseName);
-            _message = database.GetCollection<Message>(settings.MessagesCollectionName);
+            _database = TenantDatabase;
+            _message = TenantDatabase.GetCollection<Message>(settings.MessagesCollectionName);
         }
-        public Message Create(Message omess)
+        public Message Create( Message omess)
         {
             try
             {

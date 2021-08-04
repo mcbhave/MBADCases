@@ -10,18 +10,19 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
- 
+using MBADCases.Services;
+using MBADCases.Models;
+using MongoDB.Driver;
 
 namespace MBADCases.Authentication
 {
     public class BasicAuthFilter : Attribute, IAuthorizationFilter
     {
         private readonly string _realm = string.Empty;
-
+        private readonly TenantService _tenantservice;
         public BasicAuthFilter()
         {
+            
             //_realm = realm;
             //if (string.IsNullOrWhiteSpace(_realm))
             //{
@@ -33,28 +34,60 @@ namespace MBADCases.Authentication
         {
             try
             {
-                string authHeader = context.HttpContext.Request.Headers["Authorization"];
-                if (authHeader != null)
+                bool allpass = true ;
+                string srapidsecretkey = context.HttpContext.Request.Headers["X-RapidAPI-Proxy-Secret"];
+                if (srapidsecretkey != "1f863a60-f3b6-11eb-bc3e-c3f329db9ee7")
+                { allpass = false; }
+                
+                if(allpass) 
+                { 
+                    string xrapidhost = context.HttpContext.Request.Headers["x-rapidapi-host"];
+                    if (xrapidhost != "mbad.p.rapidapi.com")
+                    { allpass = false; }
+                }
+                
+                if(allpass)
                 {
-                    var authHeaderValue = AuthenticationHeaderValue.Parse(authHeader);
-                    if (authHeaderValue.Scheme.Equals(AuthenticationSchemes.Basic.ToString(), StringComparison.OrdinalIgnoreCase))
+                    string srapidapikey = context.HttpContext.Request.Headers["x-rapidapi-key"];
+                    if (srapidapikey == null || srapidapikey == "") { 
+                        allpass = false; 
+                    }
+                    else
                     {
-                        var credentials = Encoding.UTF8
-                                            .GetString(Convert.FromBase64String(authHeaderValue.Parameter ?? string.Empty))
-                                            .Split(':', 2);
-                        if (credentials.Length == 2)
+                        context.HttpContext.Session.SetString("mbadtanent", srapidapikey);
+                    }
+                    
+                }
+                               
+
+                if (allpass) { return; }
+
+
+                if (allpass) 
+                { 
+
+                    string authHeader = context.HttpContext.Request.Headers["Authorization"];
+                    if (authHeader != null)
+                    {
+                        var authHeaderValue = AuthenticationHeaderValue.Parse(authHeader);
+                        if (authHeaderValue.Scheme.Equals(AuthenticationSchemes.Basic.ToString(), StringComparison.OrdinalIgnoreCase))
                         {
-                            //if (IsAuthorized(context, credentials[0], credentials[1]))
-                            //{
-                            //    return;
-                            context.HttpContext.Session.SetString("mbadtanent", credentials[0]);
-                            
-                            return;
-                            //}
+                            var credentials = Encoding.UTF8
+                                                .GetString(Convert.FromBase64String(authHeaderValue.Parameter ?? string.Empty))
+                                                .Split(':', 2);
+                            if (credentials.Length == 2)
+                            {
+                                //if (IsAuthorized(context, credentials[0], credentials[1]))
+                                //{
+                                //    return;
+                                context.HttpContext.Session.SetString("mbadtanent", credentials[0]);
+
+                                return;
+                                //}
+                            }
                         }
                     }
                 }
-
                 ReturnUnauthorizedResult(context);
             }
             catch (FormatException)
