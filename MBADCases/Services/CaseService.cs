@@ -10,38 +10,55 @@ namespace MBADCases.Services
 {
     public class CaseService
     {
-        private readonly IMongoCollection<MongoDB.Bson.BsonDocument> _case;
-
+        private readonly IMongoCollection<Case> _case;
+        private IMongoDatabase database;
         public CaseService(ICasesDatabaseSettings settings)
         {
             var client = new MongoClient(settings.ConnectionString);
-            var database = client.GetDatabase(settings.DatabaseName);
+              database = client.GetDatabase(settings.DatabaseName);
 
-            _case = database.GetCollection<MongoDB.Bson.BsonDocument>(settings.CasesCollectionName);
+            _case = database.GetCollection<Case>(settings.CasesCollectionName);
         }
 
         //public List<Case> Get() =>
         //    _case.Find(book => true).ToList();
 
-        public BsonDocument Get(string id)
+        public Case Get(string id)=> 
+            _case.Find<Case>(book => book._id == id).FirstOrDefault();
+         
+        public Case Create(Case ocase)
         {
-            var filter = Builders<BsonDocument>.Filter.Eq("_id", new ObjectId(id));
-            return _case.Find(filter).FirstOrDefault();
-            //_case.Find<Case>(book => book._id == id).FirstOrDefault();
-        }
-        public BsonDocument Create(MongoDB.Bson.BsonDocument ocase)
-        {
-            _case.InsertOne(ocase);
+            _case.InsertOneAsync(ocase);
             return ocase;
         }
 
-        //public void Update(string id, Case caseIn) =>
-        //    _case.ReplaceOne(ocase => ocase._id == id, caseIn);
+        public void Update(string id,List<Caseattribute> caseAttrIn) 
+        {
+            //var filter = Builders<Case>.Filter.Eq("_id", id);
+           
+            foreach (Caseattribute csat in caseAttrIn)
+            {
+                var arrayFilter = Builders<BsonDocument>.Filter.Eq("_id", new ObjectId(id))
+                        & Builders<BsonDocument>.Filter.Eq("Caseattributes._id", csat.Id);
+                var arrayUpdate = Builders<BsonDocument>.Update.Set("Caseattributes.$.Value", csat.Value);
 
-        //public void Remove(Case caseIn) =>
-        //    _case.DeleteOne(ocase => ocase._id == caseIn._id);
+                var casecoll = database.GetCollection<BsonDocument>("Cases");
+                casecoll.UpdateOne(arrayFilter, arrayUpdate);
 
-        //public void Remove(string id) =>
-        //    _case.DeleteOne(book => book._id == id);
+                //var filter = Builders<Case>.Filter.Eq("_id", id)
+                //      & Builders<Case>.Filter.Eq("Caseattributes.Id", csat.Id);
+                //var update = Builders<Case>.Update.Set("Caseattributes.$.Id", csat.Value);
+                //_case.UpdateOneAsync(filter, update);
+            }
+           
+        }
+        public void Update(string id, Case caseIn) =>
+            _case.ReplaceOne(ocase => ocase._id == id, caseIn);
+
+        public void Remove(Case caseIn) =>
+            _case.DeleteOne(ocase => ocase._id == caseIn._id);
+
+        public void Remove(string id) =>
+            _case.DeleteOne(book => book._id == id);
     }
 }

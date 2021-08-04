@@ -41,7 +41,12 @@ namespace MBADCases
 
 
             });
-
+            services.AddApiVersioning(x =>
+            {
+                x.DefaultApiVersion = new ApiVersion(1,0);
+                x.AssumeDefaultVersionWhenUnspecified = true;
+                x.ReportApiVersions = true;
+            });
             // requires using Microsoft.Extensions.Options
             services.Configure<CasesDatabaseSettings>(
             Configuration.GetSection(nameof(CasesDatabaseSettings)));

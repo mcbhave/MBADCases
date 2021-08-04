@@ -1,22 +1,24 @@
 ﻿using MBADCases.Services;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MBADCases.Models;
-using Microsoft.AspNetCore.Authorization;
 using MBADCases.Authentication;
 using MongoDB.Bson;
+using System;
+using MongoDB.Bson.Serialization;
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace MBADCases.Controllers
 {
-    [Route("[controller]")]
+  
     [ApiController]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
+    [Route("v{version:apiVersion}/[controller]")]
     [BasicAuthFilter()]
     public class CaseController : ControllerBase
     {
+        private const string V = "1.0";
         private readonly CaseService _caseservice;
 
         public CaseController(CaseService caseservice)
@@ -31,45 +33,51 @@ namespace MBADCases.Controllers
         }
 
         // GET api/<CaseController>/5
+        [MapToApiVersion("1.0")]
         [HttpGet("{id:length(24)}", Name = "GetCase")]
-        public string Get(string id)
+        public IActionResult Get(string id)
         {
-            BsonDocument ocase =  _caseservice.Get(id);
+            Case ocase =  _caseservice.Get(id);
+
+            return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
+        }
+        [MapToApiVersion("2.0")]
+        [HttpGet("{id:length(24)}", Name = "GetCase")]
+        public IActionResult Get2(string id)
+        {
+            Case ocase = _caseservice.Get(id);
 
             //if (ocase == null)
             //{
             //    ocase = new Case { };
             //    return ocase;
             //}
-
-            return ocase.ToJson<BsonDocument>();
+            return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
+             
         }
-
         // POST api/<CaseController>
-        [Route("Update")]
-        [Route("Update/{id?}")]
+        [MapToApiVersion("1.0")]
         [HttpPost]
-        public void Post(Case value)
+        public IActionResult Post(Case value)
         {
+            _caseservice.Update(value._id,value.Caseattributes);
+            return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, null);
         }
 
         // PUT api/<CaseController>/5
         [HttpPut("{CaseType}")]
         public CreatedAtRouteResult Put(string CaseType, Case ocase)
         {
-            
-            // ocase = new Models.Case() { Casetype = "Dispute", Id = "" };
             if (ocase.Casetype != CaseType) { ocase.Casetype = CaseType; }
-
-            //var oretcase = _caseservice.Create(ocase);
-
+            var oretcase = _caseservice.Create(ocase);
             return CreatedAtRoute("GetCase", new { id = ocase._id.ToString()  }, ocase);
         }
 
         // DELETE api/<CaseController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public void Delete(string id)
         {
+              _caseservice.Remove(id);
         }
     }
 }
