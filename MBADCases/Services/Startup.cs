@@ -59,10 +59,11 @@ namespace MBADCases
             Configuration.GetSection(nameof(CasesDatabaseSettings)));
 
             services.AddSingleton<ICasesDatabaseSettings>(sp =>
-                sp.GetRequiredService<IOptions<Cases(tabaseSettings>>().Value);
+                sp.GetRequiredService<IOptions<CasesDatabaseSettings>>().Value);
 
             services.AddSingleton<CaseService>();
-           
+            services.AddSingleton<CaseTypeService>();
+
             //services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions);
 
             //services.AddAuthentication("Basic").AddScheme<AuthenticationSchemeOptions, Authentication.BasicAuthenticationHandler>("Basic", null);

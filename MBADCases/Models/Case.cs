@@ -1,14 +1,14 @@
-﻿
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 
 namespace MBADCases.Models
 {
     public class Case  
-    {        public Case()
+    {   
+        public Case()
         {
-            Caseattributes = new List<Caseattribute>();
+            Fields = new List<Casefield>();
             CaseActions = new List<CaseAction>();
         }
         [BsonId]
@@ -27,7 +27,7 @@ namespace MBADCases.Models
         public string Updateuser { get; set; }
         public string Sladate { get; set; }
          
-        public List<Caseattribute> Caseattributes { get; set; }
+        public List<Casefield> Fields { get; set; }
         public List<CaseAction> CaseActions { get; set; }
         public MessageResponse Message { get; set; }
 
@@ -35,15 +35,17 @@ namespace MBADCases.Models
      
     public class Option
     {
-        public string Id { get; set; }
+         
+        public string Optionid { get; set; }
         public string Name { get; set; }
         public int Seq { get; set; }
         public string Value { get; set; }
     }
 
-    public class Caseattribute
+    public class Casefield
     {
-        public string Id { get; set; }
+      
+        public string Fieldid { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }
         public string Value { get; set; }
@@ -51,7 +53,8 @@ namespace MBADCases.Models
     }
     public class CaseAction
     {
-        public string Id { get; set; }
+        
+        public string Actionid { get; set; }
         public string Name { get; set; }
         public int Seq { get; set; }
         public string Value { get; set; }

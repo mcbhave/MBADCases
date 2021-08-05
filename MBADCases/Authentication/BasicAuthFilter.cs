@@ -16,10 +16,10 @@ using MongoDB.Driver;
 
 namespace MBADCases.Authentication
 {
-    public class BasicAuthFilter : Attribute, IAuthorizationFilter
+    public class BasicAuthFilter : Attribute,  IAuthorizationFilter
     {
         private readonly string _realm = string.Empty;
-        private readonly TenantService _tenantservice;
+       
         public BasicAuthFilter()
         {
             

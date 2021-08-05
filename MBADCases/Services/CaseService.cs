@@ -11,7 +11,7 @@ namespace MBADCases.Services
 {
     public class CaseService  
     {
-        private  IMongoCollection<Case> _case;
+        private  IMongoCollection<Case> _casecollection;
         private IMongoDatabase MBADDatabase;
         private IMongoDatabase TenantDatabase;
         ICasesDatabaseSettings _settings;
@@ -24,30 +24,14 @@ namespace MBADCases.Services
                 _client = new MongoClient(settings.ConnectionString);
                 MBADDatabase = _client.GetDatabase(settings.DatabaseName);
 
-                //_case = MBADDatabase.GetCollection<Case>(settings.CasesCollectionName);
             }
             catch { throw; }
         }
         public void Gettenant(string tenantid)
         {
-            IMongoCollection<Tenant> _tenant = MBADDatabase.GetCollection<Tenant>("Tenants");
-            try
-            {
-                Tenant oten = _tenant.Find<Tenant>(book => book.Tenantname == tenantid).FirstOrDefault();
-                if (oten == null)
-                {
-                    oten = new Tenant();
-                    oten._owner = tenantid;
-                    oten.Tenantname = tenantid;
-                    oten.Tenantdesc = "";
-                    oten.Createdate = DateTime.UtcNow.ToString();
-                    //register new tenant
-                    _tenant.InsertOne(oten);
-                 
-                }
-                TenantDatabase = _client.GetDatabase(oten._id);
-                SetMBADMessage( ICaseTypes.TENANT , oten._id, tenantid, "TENANT", "Success", "Tenant login", tenantid, null);
-                _case = TenantDatabase.GetCollection<Case>(_settings.CasesCollectionName);
+            try {  
+            TenantDatabase = helperservice.Gettenant(tenantid, _client, MBADDatabase, _settings);
+                _casecollection =  TenantDatabase.GetCollection<Case>(_settings.CasesCollectionName);
             }
             catch { throw; };
         }
@@ -55,14 +39,14 @@ namespace MBADCases.Services
         //    _case.Find(book => true).ToList();
 
         public Case Get(string id) {
-            try { return _case.Find<Case>(book => book._id == id).FirstOrDefault(); } catch { throw; };
+            try { return _casecollection.Find<Case>(book => book._id == id).FirstOrDefault(); } catch { throw; };
         }
          
         public Case Create(Case ocase)
         {
             try
             {
-                _case.InsertOneAsync(ocase);
+                _casecollection.InsertOneAsync(ocase);
                 return ocase;
             }
             catch
@@ -72,16 +56,16 @@ namespace MBADCases.Services
           
         }
 
-        public void Update(string id,List<Caseattribute> caseAttrIn) 
+        public void Update(string id,Case CaseIn) 
         {
             try { 
-            foreach (Caseattribute csat in caseAttrIn)
+            foreach (Casefield csat in CaseIn.Fields)
             {
                 var arrayFilter = Builders<BsonDocument>.Filter.Eq("_id", new ObjectId(id))
-                        & Builders<BsonDocument>.Filter.Eq("Caseattributes._id", csat.Id);
-                var arrayUpdate = Builders<BsonDocument>.Update.Set("Caseattributes.$.Value", csat.Value);
+                        & Builders<BsonDocument>.Filter.Eq("Fields.Fieldid", csat.Fieldid);
+                var arrayUpdate = Builders<BsonDocument>.Update.Set("Fields.$.Value", csat.Value);
 
-                var casecoll = MBADDatabase.GetCollection<BsonDocument>(_settings.CasesCollectionName);
+                var casecoll = TenantDatabase.GetCollection<BsonDocument>(_settings.CasesCollectionName);
                 casecoll.UpdateOne(arrayFilter, arrayUpdate);
             }
             }
@@ -96,7 +80,7 @@ namespace MBADCases.Services
         public void Remove(string id)
         {
             try {
-                _case.DeleteOne(book => book._id == id);
+                _casecollection.DeleteOne(book => book._id == id);
             }
             catch { throw; }
         }
@@ -138,42 +122,6 @@ namespace MBADCases.Services
 
         }
 
-        public Message SetMBADMessage(string callrtype, string caseid, string srequest, string srequesttype, string sMessageCode, string sMessagedesc, string userid, Exception ex)
-        {
-
-            var _MessageType = string.Empty;
-            var _MessageCode = string.Empty;
-            var _MessageDesc = string.Empty;
-            if (ex != null)
-            {
-                _MessageType = "ERROR";
-                _MessageCode = ex.Message;
-                _MessageDesc = ex.ToString();
-            }
-            else
-            {
-                _MessageType = "INFO";
-                _MessageCode = sMessageCode;
-                _MessageDesc = sMessagedesc;
-            }
-            Message oms = new Message
-            {
-                Callerid = caseid,
-                Callertype = callrtype,
-                Messagecode = _MessageCode,
-                Messageype = _MessageType,
-                MessageDesc = _MessageDesc,
-                Callerrequest = srequest,
-                Callerrequesttype = srequesttype,
-                Userid = userid,
-                Messagedate = DateTime.UtcNow.ToString()
-            };
-
-            MessageService omesssrv = new MessageService(_settings, MBADDatabase);
-            oms = omesssrv.Create(oms);
-
-            return oms;
-
-        }
+        
     }
 }

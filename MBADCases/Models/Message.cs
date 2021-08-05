@@ -21,7 +21,7 @@ namespace MBADCases.Models
         public string Userid { get; set; }
         public string Messagedate { get; set; }
     }
-    public static class ICaseTypes
+    public static class ICallerType
     {
         public const string CASE= "CASE";
         public const string TENANT = "TENANT";

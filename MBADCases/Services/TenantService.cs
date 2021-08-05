@@ -49,14 +49,14 @@ namespace MBADCases.Services
 
         }
 
-        public void Update(string id, List<Caseattribute> caseAttrIn)
+        public void Update(string id, List<Casetypefield> caseAttrIn)
         {
             try
             {
-                foreach (Caseattribute csat in caseAttrIn)
+                foreach (Casetypefield csat in caseAttrIn)
                 {
                     var arrayFilter = Builders<BsonDocument>.Filter.Eq("_id", new ObjectId(id))
-                            & Builders<BsonDocument>.Filter.Eq("Caseattributes._id", csat.Id);
+                            & Builders<BsonDocument>.Filter.Eq("Caseattributes.Attributeid", csat.Fieldid);
                     var arrayUpdate = Builders<BsonDocument>.Update.Set("Caseattributes.$.Value", csat.Value);
 
                     var casecoll = MBADDatabase.GetCollection<BsonDocument>(_settings.CasesCollectionName);
@@ -101,7 +101,7 @@ namespace MBADCases.Services
             Message oms = new Message
             {
                 Callerid = caseid,
-                Callertype = ICaseTypes.TENANT,
+                Callertype = ICallerType.TENANT,
                 Messagecode = _MessageCode,
                 Messageype = _MessageType,
                 MessageDesc = _MessageDesc,

@@ -13,7 +13,7 @@ namespace MBADCases.Controllers
     [ApiVersion("1.0")]
     [ApiVersion("2.0")]
     [Route("v{version:apiVersion}/[controller]")]
-    [BasicAuthFilter()]
+    [BasicAuthFilter]
     public class TenantController : ControllerBase
     {
         //private const string V = "1.0";
