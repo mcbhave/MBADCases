@@ -91,8 +91,8 @@ namespace MBADCases.Controllers
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oicase);
 
                 case "casetypefields":
-                    MBADCases.Data.CaseTypesFieldData ocasetypesFielddata = new Data.CaseTypesFieldData(id.collectionName);
-                    DataItem<CaseTypeField> oicasef = new DataItem<CaseTypeField>();
+                    MBADCases.Data.CaseTypesFieldDataNOTUSED ocasetypesFielddata = new Data.CaseTypesFieldDataNOTUSED(id.collectionName);
+                    DataItem<CaseTypeFieldnotused> oicasef = new DataItem<CaseTypeFieldnotused>();
                     oicasef.item = ocasetypesFielddata.GetCaseTypeField(oitm._id);
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oicasef);
 
@@ -129,8 +129,8 @@ namespace MBADCases.Controllers
                     olistcasetypedata.totalCount = olistcasetypedata.items.Count;
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, olistcasetypedata);
                 case "casetypefields":
-                    FindItems<CaseTypeField> olistcasetypefields = new FindItems<CaseTypeField>();
-                    MBADCases.Data.CaseTypesFieldData ocasetypefieldsdata = new Data.CaseTypesFieldData(id.collectionName);
+                    FindItems<CaseTypeFieldnotused> olistcasetypefields = new FindItems<CaseTypeFieldnotused>();
+                    MBADCases.Data.CaseTypesFieldDataNOTUSED ocasetypefieldsdata = new Data.CaseTypesFieldDataNOTUSED(id.collectionName);
                     //List<Tenant> listtn = otendata.getTenants();
                     olistcasetypefields.items = ocasetypefieldsdata.GetCaseTypeFields();
                     olistcasetypefields.totalCount = olistcasetypefields.items.Count;

@@ -59,7 +59,7 @@ namespace MBADCases.Controllers
                 ocase._id = id;
                 oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "", "", usrid, ex);
  
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase._id, oms));
             }
         }
         [MapToApiVersion("2.0")]
@@ -85,7 +85,7 @@ namespace MBADCases.Controllers
                 ocase._id = id;
                 oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "", "", usrid, ex);
  
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase._id, oms));
             }
 
         }
@@ -105,13 +105,13 @@ namespace MBADCases.Controllers
 
                 _caseservice.Update(id, ocase);
                   oms = _caseservice.SetMessage(ICallerType.CASE, id, sj, "POST", "UPDATE", "Case update", usrid, null);
-                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseResponse(ocase, oms));
+                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseResponse(ocase._id, oms));
             }
             catch(Exception ex)
             {
                  
                 oms = _caseservice.SetMessage(ICallerType.CASE, id, sj, "POST", "UPDATE", "Case update", usrid, ex);
-                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
+                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase._id, oms));
             }
           
         }
@@ -129,19 +129,22 @@ namespace MBADCases.Controllers
             {
                 _caseservice.Gettenant(usrid);
 
+
                 if (ocase.Casetype != CaseType) { ocase.Casetype = CaseType; }
                 if (ocase.Updateuser == null) { ocase.Updateuser = createuserid; }
                 if (ocase.Createdate == null) { ocase.Createdate = DateTime.UtcNow.ToString(); }
                 if (ocase.Updatedate == null) { ocase.Updatedate = DateTime.UtcNow.ToString(); }
+
+               
                 var oretcase = _caseservice.Create(ocase);
                 oms = _caseservice.SetMessage(ICallerType.CASE, oretcase._id, sj, "PUT", "200", "Case insert", createuserid, null);
 
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseResponse(ocase, oms));
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseResponse(oretcase._id, oms));
             }
             catch(Exception ex)
             {
                 oms = _caseservice.SetMessage(ICallerType.CASE, id, sj, "PUT", "", "Case insert", createuserid, ex);
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase._id, oms));
                  
             }
            
@@ -162,12 +165,12 @@ namespace MBADCases.Controllers
 
                 _caseservice.Remove(id);
                 oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "DELETE", "200", "Case delete", usrid, null);
-                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
+                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase._id, oms));
             }
             catch (Exception ex)
             {
                 oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "DELETE", "200", "Case delete", usrid, ex);
-                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase, oms));
+                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase._id, oms));
 
             }
         }

@@ -9,7 +9,7 @@ namespace MBADCases.Models
         public Case()
         {
             Fields = new List<Casefield>();
-            CaseActions = new List<CaseAction>();
+            Activities = new List<CaseActivity>();
         }
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
@@ -19,6 +19,7 @@ namespace MBADCases.Models
         public string Casetitle { get; set; }
         public string Casetype { get; set; }
         public string Casestatus { get; set; }
+        public string Currentactivityid { get; set; }
         public string Casedescription { get; set; }
         public string Createdate { get; set; }
         public string Createuser { get; set; }
@@ -28,11 +29,58 @@ namespace MBADCases.Models
         public string Sladate { get; set; }
          
         public List<Casefield> Fields { get; set; }
-        public List<CaseAction> CaseActions { get; set; }
+        public List<CaseActivity> Activities { get; set; }
         public MessageResponse Message { get; set; }
 
     }
-     
+    
+    public class CaseActivity
+    {      
+            public CaseActivity()
+            {
+                Actions = new List<CaseAction>();
+            }
+            public string Activityid { get; set; }
+            public bool Activitycomplete { get; set; }
+            public int Activityseq { get; set; }
+
+            public bool Activitydisabled { get; set; }
+            public List<CaseAction> Actions { get; set; }
+            public int CompareTo(Activity compareSeq)
+            {
+                // A null value means that this object is greater.
+                if (compareSeq == null)
+                    return 1;
+
+                else
+                    return this.Activityseq.CompareTo(compareSeq.Activityseq);
+            }
+         
+    }
+    public class CaseAction
+    {
+        public int Actionseq { get; set; }
+        public bool Actioncomplete { get; set; }
+
+        public string Actionstatus { get; set; }
+   
+        public bool Actiondisabled { get; set; }
+        public string Actionid { get; set; }
+        public string Actiontype { get; set; }
+        public string Adapterid { get; set; }
+        public string Adapterresponse { get; set; }
+
+        // Default comparer for Part type.
+        public int CompareTo(Action compareSeq)
+        {
+            // A null value means that this object is greater.
+            if (compareSeq == null)
+                return 1;
+
+            else
+                return this.Actionseq.CompareTo(compareSeq.Actionseq);
+        }
+    }
     public class Option
     {
          
@@ -44,20 +92,19 @@ namespace MBADCases.Models
 
     public class Casefield
     {
-      
         public string Fieldid { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }
         public string Value { get; set; }
         public List<Option> Options { get; set; }
     }
-    public class CaseAction
-    {
+    //public class CaseAction
+    //{
         
-        public string Actionid { get; set; }
-        public string Name { get; set; }
-        public int Seq { get; set; }
-        public string Value { get; set; }
-        public List<Option> Options { get; set; }
-    }
+    //    public string Actionid { get; set; }
+    //    public string Name { get; set; }
+    //    public int Seq { get; set; }
+    //    public string Value { get; set; }
+    //    public List<Option> Options { get; set; }
+    //}
 }

@@ -5,9 +5,9 @@ namespace MBADCases.Models
 {
     public class CaseResponse
     {
-        public CaseResponse(Case ocase, Message oms)
+        public CaseResponse(string  id, Message oms)
         {
-            _id = ocase._id;
+            _id = id;
             //Casenumber = ocase.Casenumber;
             Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
         }
@@ -15,8 +15,7 @@ namespace MBADCases.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
 
-        //public int Casenumber { get; set; }
-       
+      
         public MessageResponse Message { get; set; }
     }
 }

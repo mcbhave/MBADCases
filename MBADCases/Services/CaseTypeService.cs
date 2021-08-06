@@ -11,7 +11,7 @@ namespace MBADCases.Services
 {
     public class CaseTypeService
     {
-        private IMongoCollection<CaseType> _casecollection;
+        private IMongoCollection<CaseType> _casetypecollection;
         private IMongoDatabase MBADDatabase;
         private IMongoDatabase TenantDatabase;
         ICasesDatabaseSettings _settings;
@@ -26,29 +26,42 @@ namespace MBADCases.Services
             }
             catch { throw; }
         }
+        public CaseTypeService(IMongoCollection<CaseType> casetypecollection)
+        {
+            try
+            {
+                _casetypecollection = casetypecollection;
+            }
+            catch { throw; }
+        }
         public void Gettenant(string tenantid)
         {
             try
             {
                 TenantDatabase = helperservice.Gettenant(tenantid, _client, MBADDatabase, _settings);
-                _casecollection = TenantDatabase.GetCollection<CaseType>("CaseTypes");
+                _casetypecollection = TenantDatabase.GetCollection<CaseType>("CaseTypes");
             }
             catch { throw; };
         }
         public CaseType Get(string id)
         {
-            try { return _casecollection.Find<CaseType>(book => book._id == id).FirstOrDefault(); } catch { throw; };
+            try { return _casetypecollection.Find<CaseType>(book => book._id == id).FirstOrDefault(); } catch { throw; };
         }
         public CaseType GetByName(string name)
         {
-            try { return _casecollection.Find<CaseType>(book => book.Casetype.ToLower() == name.ToLower()).FirstOrDefault(); } catch { throw; };
+            try{ return _casetypecollection.Find<CaseType>(book => book.Casetype.ToLower() == name.ToLower()).FirstOrDefault(); } catch { throw; };
         }
-        public CaseType Create(CaseType ocase)
+        public CaseType Create(string CaseTypeName,CaseType ocasetype)
         {
             try
             {
-                _casecollection.InsertOneAsync(ocase);
-                return ocase;
+                if (ocasetype.Casetype != CaseTypeName) { ocasetype.Casetype = CaseTypeName; }
+                //if (ocasetype.Updateuser == null) { ocasetype.Updateuser = createuserid; }
+                if (ocasetype.Createdate == null) { ocasetype.Createdate = DateTime.UtcNow.ToString(); }
+                if (ocasetype.Updatedate == null) { ocasetype.Updatedate = DateTime.UtcNow.ToString(); }
+
+                _casetypecollection.InsertOneAsync(ocasetype);
+                return ocasetype;
             }
             catch
             {
@@ -61,7 +74,7 @@ namespace MBADCases.Services
         {
             try
             {
-                _casecollection.ReplaceOne(ocase => ocase._id == id, CaseTypeIn);
+                _casetypecollection.ReplaceOne(ocase => ocase._id == id, CaseTypeIn);
                
             }
             catch { throw; }

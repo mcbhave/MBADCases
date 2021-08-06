@@ -123,12 +123,7 @@ namespace MBADCases.Controllers
             try
             {
                 _casetypeservice.Gettenant(usrid);
-
-                if (ocasetype.Casetype != CaseTypeName) { ocasetype.Casetype = CaseTypeName; }
-                if (ocasetype.Updateuser == null) { ocasetype.Updateuser = createuserid; }
-                if (ocasetype.Createdate == null) { ocasetype.Createdate = DateTime.UtcNow.ToString(); }
-                if (ocasetype.Updatedate == null) { ocasetype.Updatedate = DateTime.UtcNow.ToString(); }
-                var oretcase = _casetypeservice.Create(ocasetype);
+                var oretcase = _casetypeservice.Create(CaseTypeName,ocasetype);
                 oms = _casetypeservice.SetMessage(oretcase._id, CaseTypeName, "PUT", "200", "Case type insert", createuserid, null);
 
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(ocasetype, oms));

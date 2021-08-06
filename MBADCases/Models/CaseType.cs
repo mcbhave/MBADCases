@@ -14,8 +14,8 @@ namespace MBADCases.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
         public string Casetype { get; set; }
+
         public string Casestypedesc { get; set; }
-        public bool Casetypedisabled { get; set; }
         public string Createdate { get; set; }
         public string Createuser { get; set; }
         public string Updateuser { get; set; }
@@ -28,18 +28,32 @@ namespace MBADCases.Models
     public class Casetypefield
     {
         public string Fieldid { get; set; }
+        public string Fieldname { get; set; }
+        public int Seq { get; set; }
+        public bool Required { get; set; }
+        public string message { get; set; }
         public string Value { get; set; }
+        public List<FieldOption> Options { get; set; }
+       
+    }
+    public class SetCasetypefield
+    {
+        public string Fieldid { get; set; }
+        public string Value { get; set; }
+    }
+    public class FieldOption
+    {
+        public string Optionid { get; set; }
     }
 
     public class Adapterresponse
     {
         public Adapterresponse()
         {
-            Attributes = new List<Casetypefield>();
+            Fields = new List<SetCasetypefield>();
         }
         public string Response { get; set; }
-        public string Adapterid { get; set; }
-        public List<Casetypefield> Attributes { get; set; }
+        public List<SetCasetypefield> Fields { get; set; }
         public string Actionresponse { get; set; }
     }
 
@@ -51,15 +65,29 @@ namespace MBADCases.Models
             Fields = new List<Casetypefield>();
         }
         public int Actionseq { get; set; }
+        public bool Actioncomplete { get; set; }
+
+        public string Actionstatus { get; set; }
         public string Actionparentid { get; set; }
         public string Actionparentresponse { get; set; }
-        public bool Actionenabled { get; set; }
+        public bool Actiondisabled { get; set; }
         public string Actionid { get; set; }
         public string Actiontype { get; set; }
         public string Adapterid { get; set; }
         public string Adapterresponseattr { get; set; }
         public List<Adapterresponse> Adapterresponse { get; set; }
         public List<Casetypefield> Fields { get; set; }
+       
+        // Default comparer for Part type.
+        public int CompareTo(Action compareSeq)
+        {
+            // A null value means that this object is greater.
+            if (compareSeq == null)
+                return 1;
+
+            else
+                return this.Actionseq.CompareTo(compareSeq.Actionseq);
+        }
     }
 
     public class Activity
@@ -67,16 +95,24 @@ namespace MBADCases.Models
         public Activity()
            {
             Actions = new List<Action>();
+            Activitydisabled = false;
+            Activityseq = 0;
             }
         public string Activityid { get; set; }
+        public bool Activitycomplete { get; set; }
+        public bool Activitydisabled { get; set; }
+        public int Activityseq { get; set; }
         public string Activityname { get; set; }
         public string Activitydesc { get; set; }
-        public string Duedays { get; set; }
-        public string Duedaystype { get; set; }
-        public string Roles { get; set; }
         public List<Action> Actions { get; set; }
+        public int CompareTo(Activity compareSeq)
+        {
+            // A null value means that this object is greater.
+            if (compareSeq == null)
+                return 1;
+            else
+                return this.Activityseq.CompareTo(compareSeq.Activityseq);
+        }
     }
-
-    
 
 }

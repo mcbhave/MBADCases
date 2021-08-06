@@ -3,7 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 namespace MBADCases.Models
 {
-    public class CaseTypeField
+    public class CaseTypeFieldnotused
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
