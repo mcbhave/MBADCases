@@ -26,7 +26,6 @@ namespace MBADCases.Models
 
         public string Updatedate { get; set; }
         public string Updateuser { get; set; }
-        public string Sladate { get; set; }
          
         public List<Casefield> Fields { get; set; }
         public List<CaseActivity> Activities { get; set; }
@@ -44,7 +43,8 @@ namespace MBADCases.Models
             public bool Activitycomplete { get; set; }
             public int Activityseq { get; set; }
 
-            public bool Activitydisabled { get; set; }
+             public string Activitycompletedate { get; set; }
+             public bool Activitydisabled { get; set; }
             public List<CaseAction> Actions { get; set; }
             public int CompareTo(Activity compareSeq)
             {
@@ -61,7 +61,7 @@ namespace MBADCases.Models
     {
         public int Actionseq { get; set; }
         public bool Actioncomplete { get; set; }
-
+        public string Actioncompletedate { get; set; }
         public string Actionstatus { get; set; }
    
         public bool Actiondisabled { get; set; }

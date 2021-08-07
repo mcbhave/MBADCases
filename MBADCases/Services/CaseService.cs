@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using MBADCases.Models;
@@ -15,6 +16,7 @@ namespace MBADCases.Services
         private  IMongoCollection<Case> _casecollection;
         private IMongoCollection<CaseDB> _casedbcollection;
         private IMongoCollection<CaseType> _casetypecollection;
+        private IMongoCollection<CaseActivityHistory> _caseactivityhistorycollection;
         private IMongoDatabase MBADDatabase;
         private IMongoDatabase TenantDatabase;
         ICasesDatabaseSettings _settings;
@@ -37,6 +39,7 @@ namespace MBADCases.Services
                 _casecollection =  TenantDatabase.GetCollection<Case>(_settings.CasesCollectionName);
                 _casetypecollection = TenantDatabase.GetCollection<CaseType>(_settings.CaseTypesCollectionName);
                 _casedbcollection= TenantDatabase.GetCollection<CaseDB>(_settings.CasesCollectionName);
+                _caseactivityhistorycollection = TenantDatabase.GetCollection<CaseActivityHistory>(_settings.Caseactivityhistorycollection);
             }
             catch { throw; };
         }
@@ -59,31 +62,29 @@ namespace MBADCases.Services
                     oct = octsr.Create(ocase.Casetype, oct);
                 }
 
-                //Get current activity details
-                var scurrentact = ocase.Currentactivityid;
-                Activity odact = new Activity();
-                if (scurrentact == null || scurrentact == "")
-                {
-                    //get the first activity from case type defination
-                    oct.Activities.Sort();
-                    odact = oct.Activities.FirstOrDefault();
-                }
-                else
-                {
-                    odact = oct.Activities.Where(ct => ct.Activityid.ToLower() == scurrentact.ToLower()).FirstOrDefault();
-                }
-
+                IComparer<Activity> comparer = new MyActivityOrder();
+                oct.Activities.Sort(comparer);
                
-               // ocase.Activities.Add(odact);
 
                 //Get all field definations and values
                 //fields are set and created within an activity
-                foreach(Activity octypeact in oct.Activities)
+                foreach (Activity octypeact in oct.Activities)
                 {
-                   foreach(Models.Action oa in octypeact.Actions)
+                    foreach (Models.Action oa in octypeact.Actions)
                     {
-                         
+
                     }
+                    if (octypeact.Activitycomplete == false)
+                    {
+                        if (ocase.Activities.Find(e => e.Activityid == octypeact.Activityid) == null)
+                        {
+                            CaseActivity ocasactiv = new CaseActivity();
+                            ocasactiv.Activityid = octypeact.Activityid;
+                            ocase.Activities.Add(ocasactiv);
+                        }
+                        
+                    }
+                   
                 }
 
 
@@ -95,73 +96,68 @@ namespace MBADCases.Services
         {
             try
             {
+                //create a case _id first
+                var oc = ocase.ToJson();
+                CaseDB ocasedb = Newtonsoft.Json.JsonConvert.DeserializeObject<CaseDB>(oc);
+                _casedbcollection.InsertOneAsync(ocasedb);
+
                 //first get the case type
                 //get case type details
                 CaseTypeService octsr = new CaseTypeService(_casetypecollection);
-                CaseType oct = octsr.GetByName(ocase.Casetype);
+                CaseType oct = octsr.GetByName(ocasedb.Casetype);
                 if (oct == null) {
                     oct = new CaseType();
-                    oct.Casetype = ocase.Casetype;
+                    oct.Casetype = ocasedb.Casetype;
                     //Register new case type
-                    oct= octsr.Create(ocase.Casetype, oct);
+                    oct= octsr.Create(ocasedb.Casetype, oct);
                 }
-                //var sdefaultact = oct.Defaultactivityid;
-                //Activity odact;
-                //if (sdefaultact==null || sdefaultact == "")
-                //{
-                //    oct.Activities.Sort();
-                //    //get the first one if any
-                //    odact = oct.Activities.Where(a=>a.Activitydisabled==false).FirstOrDefault();
-                //}
-                //else
-                //{
-                //   odact = oct.Activities.Where(ct => ct.Activityid.ToLower() == sdefaultact.ToLower()).FirstOrDefault();
-                //}
                 
-                foreach(Activity odact in oct.Activities)
+                IComparer<Activity> comparer = new MyActivityOrder();
+                oct.Activities.Sort(comparer);
+                foreach (Activity odact in oct.Activities)
                 {
 
                     //set this as current activity
-                    CaseActivity icaseActivity = new CaseActivity();
+                    CaseActivityHistory icaseActivity = new CaseActivityHistory();
+                    icaseActivity.Caseid = ocasedb._id;
                     icaseActivity.Activityid = odact.Activityid;
                     icaseActivity.Activityseq = odact.Activityseq;
                     icaseActivity.Activitydisabled = odact.Activitydisabled;
                     int totalactionsfin = 0;
                     if (odact.Activitydisabled == false)
                     {
-                        Models.Action oaction;
                       
-                        if (odact.Actions.Count > 0) {
-                        odact.Actions.Sort(); 
-                        oaction = odact.Actions.FirstOrDefault();
-                        if (oaction != null)
-                        {
-                            List<Casetypefield> oflds = oaction.Fields.Where(o => o.Required == true).ToList();
+                        //Models.Action oaction;                     
+                        //if (odact.Actions.Count > 0) {
+                        //    IComparer<Models.Action> compareract2 = new MyActionOrder();
+                        //    odact.Actions.Sort(compareract2); 
+                        //oaction = odact.Actions.FirstOrDefault();
+                        //if (oaction != null)
+                        //{
+                        //    List<Casetypefield> oflds = oaction.Fields.Where(o => o.Required == true).ToList();
 
-                                foreach (Casetypefield ofl in oflds)
-                                {
-                                    Casefield casefield;
-                                    if ((casefield = ocase.Fields.Where(o => o.Fieldid.ToUpper() == ofl.Fieldid.ToUpper()).FirstOrDefault()) != null)
-                                    {
-                                        if(casefield.Value ==null || casefield.Value == "")
-                                        {
-                                            throw new Exception("Field is reqired, Fieldid:" + ofl.Fieldid);
-                                        } 
-                                    }
-                                    else
-                                    {
-                                        throw new Exception("Field and its value is missing, Fieldid:" + ofl.Fieldid);
-                                    }
-                                }
-                            }
-                        }
-
+                        //        foreach (Casetypefield ofl in oflds)
+                        //        {
+                        //            CaseDBfield casefield;
+                        //            if ((casefield = ocasedb.Fields.Where(o => o.Fieldid.ToUpper() == ofl.Fieldid.ToUpper()).FirstOrDefault()) != null)
+                        //            {
+                        //                if(casefield.Value ==null || casefield.Value == "")
+                        //                {
+                        //                    throw new Exception("Field is reqired, Fieldid:" + ofl.Fieldid);
+                        //                } 
+                        //            }
+                        //            else
+                        //            {
+                        //                throw new Exception("Field and its value is missing, Fieldid:" + ofl.Fieldid);
+                        //            }
+                        //        }
+                        //    }
+                        //}
                         //if reaches this point then check if the first activity action is an EVENT OR TASK
                         //execute EVENT TYPE actions until it reaches a task
-                        odact.Actions.Sort();
+                        IComparer<Models.Action> compareract = new MyActionOrder();
+                        odact.Actions.Sort(compareract);
 
-                        //collect all Events until first TASK is found
-                   
                         foreach (Models.Action iAct in odact.Actions)
                         {
                             CaseAction iCaseActn = new CaseAction();
@@ -169,6 +165,40 @@ namespace MBADCases.Services
                             iCaseActn.Actiontype = iAct.Actiontype;
                             if (iAct.Actiontype.ToUpper() == "EVENT")
                             {
+                                if (iAct.Fields != null) { 
+                                    List<Casetypefield> oflds = iAct.Fields.Where(o => o.Required == true).ToList();
+
+                                    foreach (Casetypefield ofl in oflds)
+                                    {
+                                        CaseDBfield casefield;
+                                        if ((casefield = ocasedb.Fields.Where(o => o.Fieldid.ToUpper() == ofl.Fieldid.ToUpper()).FirstOrDefault()) != null)
+                                        {
+                                            if (casefield.Value == null || casefield.Value == "")
+                                            {
+                                                throw new Exception("Field is reqired, Fieldid:" + ofl.Fieldid);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new Exception("Field and its value is missing, Fieldid:" + ofl.Fieldid);
+                                        }
+                                    }
+
+                                    //if all fields are present then add them
+                                    foreach (Casetypefield ofl in iAct.Fields)
+                                    {
+                                        CaseDBfield odbsetfld;
+                                        if ((odbsetfld = ocasedb.Fields.Where(F => F.Fieldid.ToLower() == ofl.Fieldid.ToLower()).FirstOrDefault()) != null)
+                                        {
+                                            odbsetfld.Value = ofl.Value;
+                                        }
+                                        else
+                                        {
+                                            ocasedb.Fields.Add(new CaseDBfield() { Fieldid = ofl.Fieldid, Value = ofl.Value });
+                                        }
+                                    }
+                                }
+
                                 Adapterresponse oAdpResp = new Adapterresponse();
 
                                 if (iAct.Adapterid != null)
@@ -189,18 +219,18 @@ namespace MBADCases.Services
                                 //Translate and assign fields
                                     foreach (Models.SetCasetypefield ofl in oAdpResp.Fields)
                                         {
-                                            Casefield ocasesetfld;
-                                            if ((ocasesetfld = ocase.Fields.Where(F => F.Fieldid.ToLower() == ofl.Fieldid.ToLower()).FirstOrDefault()) != null)
+                                            CaseDBfield ocasesetfld;
+                                            if ((ocasesetfld = ocasedb.Fields.Where(F => F.Fieldid.ToLower() == ofl.Fieldid.ToLower()).FirstOrDefault()) != null)
                                             {
                                                 ocasesetfld.Value = ofl.Value;
                                             }
                                             else
                                             {
                                             //add field
-                                            ocasesetfld = new Casefield();
+                                            ocasesetfld = new CaseDBfield();
                                                 ocasesetfld.Fieldid = ofl.Fieldid;
                                                 ocasesetfld.Value = ofl.Value;
-                                                ocase.Fields.Add(ocasesetfld);
+                                                ocasedb.Fields.Add(ocasesetfld);
                                             }
                                         }
 
@@ -208,6 +238,7 @@ namespace MBADCases.Services
                                     //set Actioncomplete = true and  Actionstatus = "COMPLETE"
                                
                                     iCaseActn.Actioncomplete = true;
+                                    iCaseActn.Actioncompletedate = DateTime.UtcNow.ToString();
                                     iCaseActn.Actionstatus = "SUCCESS";
                                     icaseActivity.Actions.Add(iCaseActn);
                                 }
@@ -222,26 +253,23 @@ namespace MBADCases.Services
                         if (totalactionsfin == odact.Actions.Count)
                         {
                             icaseActivity.Activitycomplete = true;
+                            icaseActivity.Activitycompletedate = DateTime.UtcNow.ToString();
                         }
-                        ocase.Currentactivityid = odact.Activityid;
-                        ocase.Activities.Add(icaseActivity);
-                        break;
+                       // ocasedb.Currentactivityid = odact.Activityid;
+                        //ocasedb.Activities.Add(icaseActivity);
+                        _caseactivityhistorycollection.InsertOneAsync(icaseActivity);
+                         
                     }
                     else
                     {
                         icaseActivity.Activitycomplete = true;
-                        ocase.Currentactivityid = odact.Activityid;
-                        ocase.Activities.Add(icaseActivity);
+                        icaseActivity.Activitycompletedate = DateTime.UtcNow.ToString();
+                        _caseactivityhistorycollection.InsertOneAsync(icaseActivity);
                     }
-                   
-              
-                }
-                //convert case to caseDB
-                var oc= ocase.ToJson();
-                //BsonDocument ob= BsonDocument.Parse(oc);
-                CaseDB ocasedb = Newtonsoft.Json.JsonConvert.DeserializeObject<CaseDB>(oc);
 
-                _casedbcollection.InsertOneAsync(ocasedb);
+                }
+  
+                _casedbcollection.ReplaceOneAsync(ocase => ocase._id == ocasedb._id, ocasedb);
                 return ocasedb;
             }
             catch
@@ -250,7 +278,34 @@ namespace MBADCases.Services
             }
           
         }
+        public class MyActivityOrder : IComparer<Activity>
+        {
+            public int Compare(Activity x, Activity y)
+            {
+                int compareDate = x.Activityseq.CompareTo(y.Activityseq);
+                if (compareDate == 0)
+                {
+                    return x.Activityseq.CompareTo(y.Activityseq);
+                }
+                return compareDate;
+            }
 
+        
+        }
+        public class MyActionOrder : IComparer<Models.Action>
+        {
+            public int Compare(Models.Action x, Models.Action y)
+            {
+                int compareDate = x.Actionseq.CompareTo(y.Actionseq);
+                if (compareDate == 0)
+                {
+                    return x.Actionseq.CompareTo(y.Actionseq);
+                }
+                return compareDate;
+            }
+
+            
+        }
         public void Update(string id,Case CaseIn) 
         {
             try { 

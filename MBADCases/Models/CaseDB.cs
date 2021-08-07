@@ -9,7 +9,7 @@ namespace MBADCases.Models
         public CaseDB()
         {
             Fields = new List<CaseDBfield>();
-            Activities = new List<CaseActivity>();
+            //Activities = new List<CaseActivity>();
         }
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
@@ -26,10 +26,10 @@ namespace MBADCases.Models
 
         public string Updatedate { get; set; }
         public string Updateuser { get; set; }
-        public string Sladate { get; set; }
+        //public string Sladate { get; set; }
 
         public List<CaseDBfield> Fields { get; set; }
-        public List<CaseActivity> Activities { get; set; }
+        //public List<CaseActivity> Activities { get; set; }
 
     }
 

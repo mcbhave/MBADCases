@@ -12,6 +12,7 @@ namespace MBADCases.Models
         public string DatabaseName { get; set; }
         public string MessagesCollectionName { get; set ; }
         public string CaseTypesCollectionName { get; set; }
+        public string Caseactivityhistorycollection { get; set; }
     }
 
     public interface ICasesDatabaseSettings
@@ -21,5 +22,6 @@ namespace MBADCases.Models
         string MessagesCollectionName { get; set; }
         string ConnectionString { get; set; }
         string DatabaseName { get; set; }
+        public string Caseactivityhistorycollection { get; set; }
     }
 }
