@@ -72,7 +72,10 @@ namespace MBADCases.Models
         public string Actionparentresponse { get; set; }
         public bool Actiondisabled { get; set; }
         public string Actionid { get; set; }
+        public string Activityid { get; set; }
+        public string Caseid { get; set; }
         public string Actiontype { get; set; }
+        public Actionauth Actionauth { get; set; }
         public string Adapterid { get; set; }
         public string Adapterresponseattr { get; set; }
         public List<Adapterresponse> Adapterresponse { get; set; }
@@ -89,7 +92,17 @@ namespace MBADCases.Models
                 return this.Actionseq.CompareTo(compareSeq.Actionseq);
         }
     }
-
+    public class Actionauth
+    {
+        public string Fieldid { get; set; }
+        public string ValueX { get; set; }
+        public string Type { get; set; }
+        public string Oprator { get; set; }
+        public string ValueY { get; set; }
+        public bool Defaultreturn { get; set; }
+        public bool Returniftrue { get; set; }
+        public bool Returniffalse { get; set; }
+    }
     public class Activity
     {
         public Activity()

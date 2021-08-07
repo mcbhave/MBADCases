@@ -34,6 +34,7 @@ namespace MBADCases.Services
             }
             catch { throw; };
         }
+
         public static  Message SetMBADMessage(ICasesDatabaseSettings settings, IMongoDatabase MBADDatabase, string callrtype, string caseid, string srequest, string srequesttype, string sMessageCode, string sMessagedesc, string userid, Exception ex)
         {
 
@@ -71,6 +72,98 @@ namespace MBADCases.Services
             return oms;
 
         }
+        public static string GetFieldValueByFieldID(Case fcase , string Fieldid)
+        {
+            if (fcase != null)
+            {
+                Casefield ocf;
+                if (fcase.Fields != null)
+                {
+                   if((ocf = fcase.Fields.Where(f => f.Fieldid.ToLower() == Fieldid.ToLower()).FirstOrDefault()) != null){
+                        return ocf.Value;
+                    }
+                }
+            }
+            return "";
+        }
+        public static bool GetCompareResults(  Models.Action iAct , IMongoCollection<ActionAuthLogs> Logcollection)
+        {
+            if (iAct  == null) { return true;  }
+            if (iAct.Actionauth == null) { return WriteCompareLog(Logcollection, iAct, "Action Auth configuration is null", true); }
+            var sactionconfig = Newtonsoft.Json.JsonConvert.SerializeObject(iAct.Actionauth);
+            var defaultret = iAct.Actionauth.Defaultreturn;
+            var bretiftrue = iAct.Actionauth.Returniftrue;
+            var bretiffalse= iAct.Actionauth.Returniffalse;
+            var FieldValue = iAct.Actionauth.ValueX;
+            if (iAct.Actionauth.Oprator==null || iAct.Actionauth.Oprator == "") { iAct.Actionauth.Oprator = "="; }
+            switch (iAct.Actionauth.Type.ToUpper())
+            {
+                case "STRING":
+                    switch (iAct.Actionauth.Oprator.ToUpper())
+                    {
+                        case "=":
+                            if (FieldValue.ToLower() == iAct.Actionauth.ValueY.ToLower())
+                            { return WriteCompareLog(Logcollection, iAct, sactionconfig, bretiftrue);}
+                            else { return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiffalse);}
+                        case "CONTAINS":
+                            if (FieldValue.ToLower().Contains(iAct.Actionauth.ValueY.ToLower()))
+                            { return bretiftrue; }
+                            else { return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiffalse); }
+                        case "STARTSWITH":
+                            if (FieldValue.ToLower().StartsWith(iAct.Actionauth.ValueY.ToLower()))
+                            { return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiftrue); }
+                            else {   return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiffalse);  }
+                        case "ENDSWITH":
+                            if (FieldValue.ToLower().EndsWith(iAct.Actionauth.ValueY.ToLower()))
+                            { return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiftrue); }
+                            else {   return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiffalse);  }
+                        default:
+                            return defaultret;
+                    }
+                default:
+                    return defaultret;
+            }
+        }
+        public static bool WriteCompareLog(IMongoCollection<ActionAuthLogs> _logs,  Models.Action iAct, string Logdesc, bool Returnbool)
+        {
+            
+
+            ActionAuthLogs olog = new ActionAuthLogs() { Activityid = iAct.Activityid, Caseid = iAct.Caseid, Logdesc = Logdesc, Actionid = iAct.Actionid, Actionauthresult = Returnbool };
+
+                 
+                _logs.InsertOneAsync(olog);
+            
+           
+            return Returnbool;
+        }
     }
-    
+   
+    public class MyActivityOrder : IComparer<Activity>
+    {
+        public int Compare(Activity x, Activity y)
+        {
+            int compareDate = x.Activityseq.CompareTo(y.Activityseq);
+            if (compareDate == 0)
+            {
+                return x.Activityseq.CompareTo(y.Activityseq);
+            }
+            return compareDate;
+        }
+
+
+    }
+    public class MyActionOrder : IComparer<Models.Action>
+    {
+        public int Compare(Models.Action x, Models.Action y)
+        {
+            int compareDate = x.Actionseq.CompareTo(y.Actionseq);
+            if (compareDate == 0)
+            {
+                return x.Actionseq.CompareTo(y.Actionseq);
+            }
+            return compareDate;
+        }
+
+
+    }
 }
