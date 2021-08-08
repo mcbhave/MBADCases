@@ -38,6 +38,15 @@ namespace MBADCases.Models
             }
             catch { throw; };
         }
+        public Adapter Get(string id)
+        {
+            try { return _Adapterscollection.Find<Adapter>(book => book._id == id).FirstOrDefault(); } catch { throw; };
+        }
+        public Adapter GetByName(string name)
+        {
+            try { return _Adapterscollection.Find<Adapter>(book => book.Name.ToLower() == name.ToLower()).FirstOrDefault(); } catch { throw; };
+        }
+        
         public Adapter Create(Adapter oadapter)
         {
             try
@@ -50,6 +59,15 @@ namespace MBADCases.Models
                 throw;
             }
 
+        }
+        public void Update(string id, Adapter AdapterIn)
+        {
+            try
+            {
+                _Adapterscollection.ReplaceOne(ocase => ocase._id == id, AdapterIn);
+
+            }
+            catch { throw; }
         }
         public Message SetMessage(string casetypeid, string srequest, string srequesttype, string sMessageCode, string sMessagedesc, string userid, Exception ex)
         {

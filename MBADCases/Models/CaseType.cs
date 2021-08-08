@@ -70,7 +70,7 @@ namespace MBADCases.Models
         public string Actionstatus { get; set; }
         public string Actionparentid { get; set; }
         public string Actionparentresponse { get; set; }
-        public bool Actiondisabled { get; set; }
+        public bool Isdisabled { get; set; }
         public string Actionid { get; set; }
         public string Activityid { get; set; }
         public string Caseid { get; set; }
@@ -109,12 +109,12 @@ namespace MBADCases.Models
         public Activity()
            {
             Actions = new List<Action>();
-            Activitydisabled = false;
+            Isdisabled = false;
             Activityseq = 0;
             }
         public string Activityid { get; set; }
         public bool Activitycomplete { get; set; }
-        public bool Activitydisabled { get; set; }
+        public bool Isdisabled { get; set; }
         public int Activityseq { get; set; }
         public string Activityname { get; set; }
         public string Activitydesc { get; set; }

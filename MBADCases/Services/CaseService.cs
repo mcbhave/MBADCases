@@ -168,10 +168,10 @@ namespace MBADCases.Services
                     icaseActivity.Caseid = ocasedb._id;
                     icaseActivity.Activityid = odact.Activityid;
                     icaseActivity.Activityseq = odact.Activityseq;
-                    icaseActivity.Activitydisabled = odact.Activitydisabled;
+                    icaseActivity.Activitydisabled = odact.Isdisabled;
                     
                     int totalactionsfin = 0;
-                    if (odact.Activitydisabled == false)
+                    if (odact.Isdisabled == false)
                     {
                         //if reaches this point then check if the first activity action is an EVENT OR TASK
                         //execute EVENT TYPE actions until it reaches a task
