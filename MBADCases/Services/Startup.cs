@@ -63,7 +63,7 @@ namespace MBADCases
 
             services.AddSingleton<CaseService>();
             services.AddSingleton<CaseTypeService>();
-
+            services.AddSingleton<AdapterService>();
             //services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions);
 
             //services.AddAuthentication("Basic").AddScheme<AuthenticationSchemeOptions, Authentication.BasicAuthenticationHandler>("Basic", null);

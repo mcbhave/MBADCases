@@ -14,6 +14,8 @@ namespace MBADCases.Models
         public string CaseTypesCollectionName { get; set; }
         public string Caseactivityhistorycollection { get; set; }
         public string ActionAuthLogscollection { get; set; }
+
+        public string Adapterscollection { get; set; }
     }
 
     public interface ICasesDatabaseSettings
@@ -25,5 +27,6 @@ namespace MBADCases.Models
         string DatabaseName { get; set; }
         public string Caseactivityhistorycollection { get; set; }
         public string ActionAuthLogscollection { get; set; }
+        public string Adapterscollection { get; set; }
     }
 }
