@@ -94,24 +94,27 @@ namespace MBADCases.Controllers
         }
         
         [HttpPost("{id:length(24)}", Name = "UpdateAdapter")]
-        public IActionResult Post(string id, Adapter ocaseadaptr)
+        public IActionResult Post(string id, Adapter adapter)
         {
             Message oms;
             var usrid = HttpContext.Session.GetString("mbadtanent");
             //string id = ocase._id;
-            ocaseadaptr._id = id;
+            adapter._id = id;
             try
             {
                 _adapterservice.Gettenant(usrid);
-
-                _adapterservice.Update(id, ocaseadaptr);
+                if (adapter.Name == null || adapter.Name == "")
+                {
+                    adapter.Name = "Adapter_" + helperservice.RandomString(5, false);
+                }
+                _adapterservice.Update(id, adapter);
                 oms = _adapterservice.SetMessage(id, null, "POST", "UPDATE", "Case type update", usrid, null);
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseResponse(ocaseadaptr._id, oms));
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseResponse(adapter._id, oms));
             }
             catch (Exception ex)
             {
                 oms = _adapterservice.SetMessage(id, null, "POST", "UPDATE", "Case type update", usrid, ex);
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocaseadaptr._id, oms));
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(adapter._id, oms));
             }
         }
 
@@ -124,12 +127,23 @@ namespace MBADCases.Controllers
             var usrid = HttpContext.Session.GetString("mbadtanent");
             try
             {
+                Adapter oretcase;
                 _adapterservice.Gettenant(usrid);
                 if(adapter.Name==null || adapter.Name == "")
                 {
                     adapter.Name="Adapter_" + helperservice.RandomString(5, false);
                 }
-                var oretcase = _adapterservice.Create(adapter);
+                else
+                {
+                    //check if name is unique
+                    if ((oretcase = _adapterservice.GetByName(adapter.Name)) != null)
+                    {
+                        oms = _adapterservice.SetMessage(oretcase._id, sj, "PUT", "200", "Case insert", usrid, null);
+                        return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseResponse(oretcase._id, oms));
+                    };
+                }
+
+                  oretcase = _adapterservice.Create(adapter);
                 oms = _adapterservice.SetMessage( oretcase._id, sj, "PUT", "200", "Case insert", usrid, null);
 
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseResponse(oretcase._id, oms));

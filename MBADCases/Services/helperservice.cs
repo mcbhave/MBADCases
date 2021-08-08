@@ -3,6 +3,7 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,15 +29,32 @@ namespace MBADCases.Services
 
                 }
                 IMongoDatabase TenantDatabase = Client.GetDatabase(oten._id); ;
-                                
-                SetMBADMessage(settings,   MBADDatabase,ICallerType.TENANT, oten._id, tenantid, "TENANT", "Success", "Tenant login", tenantid, null);
+
+                SetMBADMessage(settings, MBADDatabase, ICallerType.TENANT, oten._id, tenantid, "TENANT", "Success", "Tenant login", tenantid, null);
 
                 return TenantDatabase;
             }
             catch { throw; };
         }
-
-        public static  Message SetMBADMessage(ICasesDatabaseSettings settings, IMongoDatabase MBADDatabase, string callrtype, string caseid, string srequest, string srequesttype, string sMessageCode, string sMessagedesc, string userid, Exception ex)
+        public static string Gheparavli(IMongoCollection<Vault> _Vaultcollection)
+        {
+            var ovault = new helperservice.VaultCrypt("M610ffa52610B35af2b32e13d5D");
+            Vault ombad = _Vaultcollection.Find(c => c.Name == "MBADKEY").FirstOrDefault();
+            if (ombad == null)
+            {
+                ombad = new Vault() { Name = "MBADKEY", Encryptwithkey = ovault.Encrypt(Guid.NewGuid().ToString()) };
+                //SAVE
+                _Vaultcollection.InsertOne(ombad);
+            }
+            ombad = _Vaultcollection.Find(c => c.Name == "MBADKEY").FirstOrDefault();
+            if (ombad == null)
+            { throw new Exception("something is totally wrong with secured keys, call administrator"); }
+            var encrptkey = ovault.Decrypt(ombad.Encryptwithkey);
+                         
+            return encrptkey;
+        }
+         
+        public static Message SetMBADMessage(ICasesDatabaseSettings settings, IMongoDatabase MBADDatabase, string callrtype, string caseid, string srequest, string srequesttype, string sMessageCode, string sMessagedesc, string userid, Exception ex)
         {
 
             var _MessageType = string.Empty;
@@ -73,36 +91,36 @@ namespace MBADCases.Services
             return oms;
 
         }
-        public static string GetFieldValueByFieldID(Case fcase , string Fieldid)
+        public static string GetFieldValueByFieldID(Case fcase, string Fieldid)
         {
             if (fcase != null)
             {
                 Casefield ocf;
                 if (fcase.Fields != null)
                 {
-                   if((ocf = fcase.Fields.Where(f => f.Fieldid.ToLower() == Fieldid.ToLower()).FirstOrDefault()) != null){
+                    if ((ocf = fcase.Fields.Where(f => f.Fieldid.ToLower() == Fieldid.ToLower()).FirstOrDefault()) != null) {
                         return ocf.Value;
                     }
                 }
             }
             return "";
         }
-        public static bool GetCompareResults( Case ocase, Models.Action iAct , IMongoCollection<ActionAuthLogs> Logcollection)
+        public static bool GetCompareResults(Case ocase, Models.Action iAct, IMongoCollection<ActionAuthLogs> Logcollection)
         {
-            if (iAct  == null) { return true;  }
+            if (iAct == null) { return true; }
             if (iAct.Actionauth == null) { return WriteCompareLog(Logcollection, iAct, "Action Auth configuration is null", true); }
-             
-                if (iAct.Actionauth.Fieldid != null || iAct.Actionauth.Fieldid == "")
-                {
-                    iAct.Actionauth.ValueX = helperservice.GetFieldValueByFieldID(ocase, iAct.Actionauth.Fieldid);
-                }
-             
+
+            if (iAct.Actionauth.Fieldid != null || iAct.Actionauth.Fieldid == "")
+            {
+                iAct.Actionauth.ValueX = helperservice.GetFieldValueByFieldID(ocase, iAct.Actionauth.Fieldid);
+            }
+
             var sactionconfig = Newtonsoft.Json.JsonConvert.SerializeObject(iAct.Actionauth);
             var defaultret = iAct.Actionauth.Defaultreturn;
             var bretiftrue = iAct.Actionauth.Returniftrue;
-            var bretiffalse= iAct.Actionauth.Returniffalse;
+            var bretiffalse = iAct.Actionauth.Returniffalse;
             var FieldValue = iAct.Actionauth.ValueX;
-            if (iAct.Actionauth.Oprator==null || iAct.Actionauth.Oprator == "") { iAct.Actionauth.Oprator = "="; }
+            if (iAct.Actionauth.Oprator == null || iAct.Actionauth.Oprator == "") { iAct.Actionauth.Oprator = "="; }
             switch (iAct.Actionauth.Type.ToUpper())
             {
                 case "STRING":
@@ -110,20 +128,20 @@ namespace MBADCases.Services
                     {
                         case "=":
                             if (FieldValue.ToLower() == iAct.Actionauth.ValueY.ToLower())
-                            { return WriteCompareLog(Logcollection, iAct, sactionconfig, bretiftrue);}
-                            else { return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiffalse);}
+                            { return WriteCompareLog(Logcollection, iAct, sactionconfig, bretiftrue); }
+                            else { return WriteCompareLog(Logcollection, iAct, sactionconfig, bretiffalse); }
                         case "CONTAINS":
                             if (FieldValue.ToLower().Contains(iAct.Actionauth.ValueY.ToLower()))
                             { return bretiftrue; }
-                            else { return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiffalse); }
+                            else { return WriteCompareLog(Logcollection, iAct, sactionconfig, bretiffalse); }
                         case "STARTSWITH":
                             if (FieldValue.ToLower().StartsWith(iAct.Actionauth.ValueY.ToLower()))
-                            { return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiftrue); }
-                            else {   return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiffalse);  }
+                            { return WriteCompareLog(Logcollection, iAct, sactionconfig, bretiftrue); }
+                            else { return WriteCompareLog(Logcollection, iAct, sactionconfig, bretiffalse); }
                         case "ENDSWITH":
                             if (FieldValue.ToLower().EndsWith(iAct.Actionauth.ValueY.ToLower()))
-                            { return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiftrue); }
-                            else {   return WriteCompareLog(Logcollection,  iAct, sactionconfig, bretiffalse);  }
+                            { return WriteCompareLog(Logcollection, iAct, sactionconfig, bretiftrue); }
+                            else { return WriteCompareLog(Logcollection, iAct, sactionconfig, bretiffalse); }
                         default:
                             return defaultret;
                     }
@@ -159,21 +177,97 @@ namespace MBADCases.Services
         {
             return _random.Next(min, max);
         }
-        public static bool WriteCompareLog(IMongoCollection<ActionAuthLogs> _logs,  Models.Action iAct, string Logdesc, bool Returnbool)
+        public static bool WriteCompareLog(IMongoCollection<ActionAuthLogs> _logs, Models.Action iAct, string Logdesc, bool Returnbool)
         {
-            
 
-            ActionAuthLogs olog = new ActionAuthLogs() { Activityid = iAct.Activityid, Caseid = iAct.Caseid, Logdesc = Logdesc, Actionid = iAct.Actionid, Actionauthresult = Returnbool,Actionseq=iAct.Actionseq, Activityseq=iAct.Activityseq  };
 
-                 
-                _logs.InsertOneAsync(olog);
-            
-           
+            ActionAuthLogs olog = new ActionAuthLogs() { Activityid = iAct.Activityid, Caseid = iAct.Caseid, Logdesc = Logdesc, Actionid = iAct.Actionid, Actionauthresult = Returnbool, Actionseq = iAct.Actionseq, Activityseq = iAct.Activityseq };
+
+
+            _logs.InsertOneAsync(olog);
+
+
             return Returnbool;
         }
+        public class VaultCrypt
+        {
+            private string mysecurityKey = "M610ffa52610B35af2b32e13d5D";
+            public VaultCrypt(string sp)
+            {
+                mysecurityKey = sp;
+            }
+
+            public string Encrypt(string TextToEncrypt)
+            {
+                byte[] MyEncryptedArray = UTF8Encoding.UTF8
+                   .GetBytes(TextToEncrypt);
+
+                MD5CryptoServiceProvider MyMD5CryptoService = new
+                   MD5CryptoServiceProvider();
+
+                byte[] MysecurityKeyArray = MyMD5CryptoService.ComputeHash
+                   (UTF8Encoding.UTF8.GetBytes(mysecurityKey));
+
+                MyMD5CryptoService.Clear();
+
+                var MyTripleDESCryptoService = new
+                   TripleDESCryptoServiceProvider();
+
+                MyTripleDESCryptoService.Key = MysecurityKeyArray;
+
+                MyTripleDESCryptoService.Mode = CipherMode.ECB;
+
+                MyTripleDESCryptoService.Padding = PaddingMode.PKCS7;
+
+                var MyCrytpoTransform = MyTripleDESCryptoService
+                   .CreateEncryptor();
+
+                byte[] MyresultArray = MyCrytpoTransform
+                   .TransformFinalBlock(MyEncryptedArray, 0,
+                   MyEncryptedArray.Length);
+
+                MyTripleDESCryptoService.Clear();
+
+                return Convert.ToBase64String(MyresultArray, 0,
+                   MyresultArray.Length);
+            }
+
+            public string Decrypt(string TextToDecrypt)
+            {
+                byte[] MyDecryptArray = Convert.FromBase64String
+                   (TextToDecrypt);
+
+                MD5CryptoServiceProvider MyMD5CryptoService = new
+                   MD5CryptoServiceProvider();
+
+                byte[] MysecurityKeyArray = MyMD5CryptoService.ComputeHash
+                   (UTF8Encoding.UTF8.GetBytes(mysecurityKey));
+
+                MyMD5CryptoService.Clear();
+
+                var MyTripleDESCryptoService = new
+                   TripleDESCryptoServiceProvider();
+
+                MyTripleDESCryptoService.Key = MysecurityKeyArray;
+
+                MyTripleDESCryptoService.Mode = CipherMode.ECB;
+
+                MyTripleDESCryptoService.Padding = PaddingMode.PKCS7;
+
+                var MyCrytpoTransform = MyTripleDESCryptoService
+                   .CreateDecryptor();
+
+                byte[] MyresultArray = MyCrytpoTransform
+                   .TransformFinalBlock(MyDecryptArray, 0,
+                   MyDecryptArray.Length);
+
+                MyTripleDESCryptoService.Clear();
+
+                return UTF8Encoding.UTF8.GetString(MyresultArray);
+            }
+        }
     }
-   
-    public class MyActivityOrder : IComparer<Activity>
+        public class MyActivityOrder : IComparer<Activity>
     {
         public int Compare(Activity x, Activity y)
         {
@@ -201,4 +295,8 @@ namespace MBADCases.Services
 
 
     }
-}
+       
+    }
+
+   
+ 

@@ -27,5 +27,6 @@ namespace MBADCases.Models
         public const string TENANT = "TENANT";
         public const string CASETYPE = "CASETYPE";
         public const string ADAPTER = "ADAPTER";
+        public const string VAULT = "VAULT";
     }
 }
