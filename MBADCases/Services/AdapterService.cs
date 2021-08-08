@@ -11,6 +11,7 @@ namespace MBADCases.Models
         private IMongoDatabase TenantDatabase;
         ICasesDatabaseSettings _settings;
         private MongoClient _client;
+        private string _tenantid;
         public AdapterService(ICasesDatabaseSettings settings)
         {
             try
@@ -28,18 +29,25 @@ namespace MBADCases.Models
             {
                 TenantDatabase = helperservice.Gettenant(tenantid, _client, MBADDatabase, _settings);
                 _Adapterscollection = TenantDatabase.GetCollection<Adapter>(_settings.Adapterscollection);
-
+                _tenantid = tenantid;
 
             }
             catch { throw; };
         }
         public Adapter Get(string id)
         {
-            try { return _Adapterscollection.Find<Adapter>(book => book._id == id).FirstOrDefault(); } catch { throw; };
+            try { 
+                return _Adapterscollection.Find<Adapter>(book => book._id == id).FirstOrDefault();
+                
+            } catch 
+            { throw; };
         }
         public Adapter GetByName(string name)
         {
-            try { return _Adapterscollection.Find<Adapter>(book => book.Name.ToLower() == name.ToLower()).FirstOrDefault(); } catch { throw; };
+            try { 
+                return _Adapterscollection.Find<Adapter>(book => book.Name.ToLower() == name.ToLower()).FirstOrDefault();
+                
+            } catch { throw; };
         }
         
         public Adapter Create(Adapter oadapter)
@@ -59,6 +67,14 @@ namespace MBADCases.Models
         {
             try
             {
+                Adapter ov = _Adapterscollection.Find<Adapter>(book => book.Name.ToLower() == AdapterIn.Name.ToLower() && book._id !=AdapterIn._id).FirstOrDefault();
+                if (ov != null) { 
+                 
+                    //check unique name
+                    if (ov != null) { throw new Exception(AdapterIn.Name + " name already exists. Please send blank and let system generate one or pass unique name"); }
+                }
+                  
+              
                 _Adapterscollection.ReplaceOne(ocase => ocase._id == id, AdapterIn);
 
             }
@@ -84,6 +100,7 @@ namespace MBADCases.Models
             }
             Message oms = new Message
             {
+                Tenantid = _tenantid,
                 Callerid = casetypeid,
                 Callertype = ICallerType.ADAPTER,
                 Messagecode = _MessageCode,
@@ -95,7 +112,7 @@ namespace MBADCases.Models
                 Messagedate = DateTime.UtcNow.ToString()
             };
 
-            MessageService omesssrv = new MessageService(_settings, TenantDatabase);
+            MessageService omesssrv = new MessageService(_settings, TenantDatabase,MBADDatabase);
             oms = omesssrv.Create(oms);
 
             return oms;

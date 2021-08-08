@@ -16,6 +16,7 @@ namespace MBADCases.Services
         private IMongoDatabase TenantDatabase;
         ICasesDatabaseSettings _settings;
         private MongoClient _client;
+        private string _tenantid;
         public CaseTypeService(ICasesDatabaseSettings settings)
         {
             try
@@ -40,6 +41,7 @@ namespace MBADCases.Services
             {
                 TenantDatabase = helperservice.Gettenant(tenantid, _client, MBADDatabase, _settings);
                 _casetypecollection = TenantDatabase.GetCollection<CaseType>("CaseTypes");
+                _tenantid = tenantid;
             }
             catch { throw; };
         }
@@ -99,6 +101,7 @@ namespace MBADCases.Services
             }
             Message oms = new Message
             {
+                Tenantid = _tenantid,
                 Callerid = casetypeid,
                 Callertype = ICallerType.CASETYPE ,
                 Messagecode = _MessageCode,
@@ -110,7 +113,7 @@ namespace MBADCases.Services
                 Messagedate = DateTime.UtcNow.ToString()
             };
 
-            MessageService omesssrv = new MessageService(_settings, TenantDatabase);
+            MessageService omesssrv = new MessageService(_settings, TenantDatabase, MBADDatabase);
             oms = omesssrv.Create(oms);
 
             return oms;

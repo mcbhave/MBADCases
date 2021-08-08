@@ -37,13 +37,13 @@ namespace MBADCases.Controllers
                 {
                     ocase = new CaseType();
                     oms = _casetypeservice.SetMessage(ocase._id, id, "GET", "400", "Not found", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
+                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
                 }
                 else
                 {
                     oms = _casetypeservice.SetMessage(ocase._id, id, "GET", "200", "Case type Search by name", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
+                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 }
             }
@@ -72,13 +72,13 @@ namespace MBADCases.Controllers
                 {
                     ocase = new CaseType();
                     oms = _casetypeservice.SetMessage(ocase._id, name, "GET", "400", "Not found", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
+                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
                 }
                 else
                 {
                     oms = _casetypeservice.SetMessage(ocase._id, name, "GET", "200", "Case type Search by name", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
+                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 }
 

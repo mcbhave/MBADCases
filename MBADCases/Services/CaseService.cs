@@ -23,6 +23,7 @@ namespace MBADCases.Services
         private IMongoDatabase TenantDatabase;
         ICasesDatabaseSettings _settings;
         private MongoClient _client;
+        private string _tenantid;
         public CaseService(ICasesDatabaseSettings settings)
         {
             try
@@ -43,8 +44,9 @@ namespace MBADCases.Services
                 _casedbcollection= TenantDatabase.GetCollection<CaseDB>(_settings.CasesCollectionName);
                 _caseactivityhistorycollection = TenantDatabase.GetCollection<CaseActivityHistory>(_settings.Caseactivityhistorycollection);
                 _ActionAuthLogscollection = TenantDatabase.GetCollection<ActionAuthLogs>(_settings.ActionAuthLogscollection);
+                _tenantid = tenantid;
 
-                
+
             }
             catch { throw; };
         }
@@ -371,6 +373,7 @@ namespace MBADCases.Services
                 _MessageDesc = sMessagedesc;
             }
             Message oms = new Message {
+                Tenantid = _tenantid,
                 Callerid = caseid,
                 Callertype = callrtype,
                 Messagecode = _MessageCode, 
@@ -382,7 +385,7 @@ namespace MBADCases.Services
                 Messagedate=DateTime.UtcNow.ToString()
         };
             
-            MessageService omesssrv = new MessageService(_settings,TenantDatabase);
+            MessageService omesssrv = new MessageService(_settings,TenantDatabase, MBADDatabase);
             oms= omesssrv.Create(oms);
            
             return oms;

@@ -12,6 +12,7 @@ namespace MBADCases.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
         public string Callertype { get; set; }
+        public string Tenantid { get; set; }
         public string Callerid { get; set; }
         public string Messageype { get; set; }
         public string Messagecode { get; set; }

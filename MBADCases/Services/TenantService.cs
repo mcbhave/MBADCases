@@ -14,6 +14,7 @@ namespace MBADCases.Services
         private readonly IMongoCollection<Tenant> _tenant;
         private IMongoDatabase MBADDatabase;
         ICasesDatabaseSettings _settings;
+        private string _tenantid;
         public TenantService(ICasesDatabaseSettings settings)
         {
             try
@@ -100,6 +101,7 @@ namespace MBADCases.Services
             }
             Message oms = new Message
             {
+                Tenantid = ocase.Tenantname,
                 Callerid = caseid,
                 Callertype = ICallerType.TENANT,
                 Messagecode = _MessageCode,
@@ -111,7 +113,7 @@ namespace MBADCases.Services
                 Messagedate = DateTime.UtcNow.ToString()
             };
 
-            MessageService omesssrv = new MessageService(_settings, MBADDatabase);
+            MessageService omesssrv = new MessageService(_settings, MBADDatabase, MBADDatabase);
             oms = omesssrv.Create(oms);
 
             return oms;

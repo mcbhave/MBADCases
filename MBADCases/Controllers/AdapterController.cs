@@ -37,13 +37,14 @@ namespace MBADCases.Controllers
                 {
                     ocase = new Adapter();
                     oms = _adapterservice.SetMessage(ocase._id, id, "GET", "400", "Not found", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
+                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
                 }
                 else
                 {
+                    ocase.Macroname = "@Adpter|" + ocase.Name + "@";
                     oms = _adapterservice.SetMessage(ocase._id, id, "GET", "200", "Case type Search by name", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
+                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 }
             }
@@ -67,18 +68,20 @@ namespace MBADCases.Controllers
                 _adapterservice.Gettenant(usrid);
 
                 Adapter ocase = _adapterservice.GetByName(name);
-
+               
+              
                 if (ocase == null)
                 {
                     ocase = new Adapter();
                     oms = _adapterservice.SetMessage(ocase._id, name, "GET", "400", "Not found", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
+                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
                 }
                 else
                 {
+                    ocase.Macroname = "@Adpter|" + ocase.Name + "@";
                     oms = _adapterservice.SetMessage(ocase._id, name, "GET", "200", "Case type Search by name", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
+                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 }
 
@@ -88,7 +91,7 @@ namespace MBADCases.Controllers
                 Adapter ocaset = new Adapter();
 
                 oms = _adapterservice.SetMessage(name, name, "GET", "501", "Case Type Search", usrid, ex);
-                ocaset.Message = new MessageResponse() { Messagecode = oms.Messagecode, MessageDesc = oms.MessageDesc, Messageype = oms.Messageype, _id = oms._id };
+                ocaset.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, ocaset);
             }
         }

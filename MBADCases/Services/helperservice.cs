@@ -74,6 +74,7 @@ namespace MBADCases.Services
             }
             Message oms = new Message
             {
+                Tenantid = userid,
                 Callerid = caseid,
                 Callertype = callrtype,
                 Messagecode = _MessageCode,
@@ -85,7 +86,7 @@ namespace MBADCases.Services
                 Messagedate = DateTime.UtcNow.ToString()
             };
 
-            MessageService omesssrv = new MessageService(settings, MBADDatabase);
+            MessageService omesssrv = new MessageService(settings, MBADDatabase, MBADDatabase);
             oms = omesssrv.Create(oms);
 
             return oms;

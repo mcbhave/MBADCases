@@ -129,7 +129,7 @@ namespace MBADCases.Services
                     if(ov.Name.ToLower() != VaultIn.Name.ToLower())
                     {
                         //check unique name
-                        Vault ovnchk = _Vaultcollection.Find<Vault>(book => book.Name == VaultIn.Name && book.Tenantid == _tenantid).FirstOrDefault();
+                        Vault ovnchk = _Vaultcollection.Find<Vault>(book => book.Name.ToLower() == VaultIn.Name.ToLower() && book.Tenantid == _tenantid && book._id != VaultIn._id).FirstOrDefault();
                         if (ovnchk != null) { throw new Exception(VaultIn.Name + " name already exists. Please send blank and let system generate one or pass unique name"); }
                     }
                     ov.Name = VaultIn.Name;
@@ -158,6 +158,7 @@ namespace MBADCases.Services
             }
             Message oms = new Message
             {
+                Tenantid = _tenantid,
                 Callerid = casetypeid,
                 Callertype = ICallerType.VAULT,
                 Messagecode = _MessageCode,
@@ -169,7 +170,7 @@ namespace MBADCases.Services
                 Messagedate = DateTime.UtcNow.ToString()
             };
 
-            MessageService omesssrv = new MessageService(_settings, TenantDatabase);
+            MessageService omesssrv = new MessageService(_settings, TenantDatabase, MBADDatabase);
             oms = omesssrv.Create(oms);
 
             return oms;
