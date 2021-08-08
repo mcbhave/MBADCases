@@ -20,6 +20,8 @@ namespace MBADCases.Models
         public string Casetype { get; set; }
         public string Casestatus { get; set; }
         public string Currentactivityid { get; set; }
+        public string Currentactionid { get; set; }
+
         public string Casedescription { get; set; }
         public string Createdate { get; set; }
         public string Createuser { get; set; }
@@ -42,7 +44,7 @@ namespace MBADCases.Models
             public string Activityid { get; set; }
             public bool Activitycomplete { get; set; }
             public int Activityseq { get; set; }
-
+        public string Activityname { get; set; }
              public string Activitycompletedate { get; set; }
              public bool Activitydisabled { get; set; }
             public List<CaseAction> Actions { get; set; }
@@ -59,17 +61,18 @@ namespace MBADCases.Models
     }
     public class CaseAction
     {
+        
+        public string Actionid { get; set; }
+        public string Actionname { get; set; }
+        public string Actiontype { get; set; }
         public int Actionseq { get; set; }
         public bool Actioncomplete { get; set; }
         public string Actioncompletedate { get; set; }
         public string Actionstatus { get; set; }
-   
         public bool Actiondisabled { get; set; }
-        public string Actionid { get; set; }
-        public string Actiontype { get; set; }
         public string Adapterid { get; set; }
         public string Adapterresponse { get; set; }
-
+       
         // Default comparer for Part type.
         public int CompareTo(Action compareSeq)
         {
@@ -93,8 +96,9 @@ namespace MBADCases.Models
     public class Casefield
     {
         public string Fieldid { get; set; }
-        public string Name { get; set; }
-        public string Type { get; set; }
+        public string Fieldname { get; set; }
+        public int Seq { get; set; }
+        public bool Required { get; set; }
         public string Value { get; set; }
         public List<Option> Options { get; set; }
     }

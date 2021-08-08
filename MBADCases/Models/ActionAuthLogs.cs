@@ -20,7 +20,9 @@ namespace MBADCases.Models
         public string Caseid { get; set; }
 
         public string Activityid { get; set; }
+        public int Activityseq { get; set; }
         public string Actionid { get; set; }
+        public int Actionseq { get; set; }
 
         public bool Actionauthresult { get; set; }
         public string Logdate { get; set; }

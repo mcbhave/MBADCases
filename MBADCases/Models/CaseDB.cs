@@ -20,6 +20,7 @@ namespace MBADCases.Models
         public string Casetype { get; set; }
         public string Casestatus { get; set; }
         public string Currentactivityid { get; set; }
+        public string Currentactionid { get; set; }
         public string Casedescription { get; set; }
         public string Createdate { get; set; }
         public string Createuser { get; set; }

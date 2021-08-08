@@ -33,7 +33,7 @@ namespace MBADCases.Models
         public bool Required { get; set; }
         public string message { get; set; }
         public string Value { get; set; }
-        public List<FieldOption> Options { get; set; }
+        public List<Option> Options { get; set; }
        
     }
     public class SetCasetypefield
@@ -66,7 +66,7 @@ namespace MBADCases.Models
         }
         public int Actionseq { get; set; }
         public bool Actioncomplete { get; set; }
-
+        public string Actionname { get; set; }
         public string Actionstatus { get; set; }
         public string Actionparentid { get; set; }
         public string Actionparentresponse { get; set; }
@@ -80,7 +80,8 @@ namespace MBADCases.Models
         public string Adapterresponseattr { get; set; }
         public List<Adapterresponse> Adapterresponse { get; set; }
         public List<Casetypefield> Fields { get; set; }
-       
+        public int Activityseq { get; set; }
+      
         // Default comparer for Part type.
         public int CompareTo(Action compareSeq)
         {

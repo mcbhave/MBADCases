@@ -54,9 +54,11 @@ namespace MBADCases.Services
         public Case Get(string id) {
             try { 
                 Case ocase= _casecollection.Find<Case>(book => book._id == id).FirstOrDefault();
+
+                if (ocase == null) { return null; }
+
                 //get case type
                 CaseTypeService octsr = new CaseTypeService(_casetypecollection);
-
                 //get case type definations
                 CaseType oct = octsr.GetByName(ocase.Casetype);
                 if (oct == null)
@@ -67,30 +69,69 @@ namespace MBADCases.Services
                     oct = octsr.Create(ocase.Casetype, oct);
                 }
 
-                IComparer<Activity> comparer = new MyActivityOrder();
-                oct.Activities.Sort(comparer);
-               
-
-                //Get all field definations and values
-                //fields are set and created within an activity
-                foreach (Activity octypeact in oct.Activities)
+                Activity oCurrentActivity;
+                oCurrentActivity = oct.Activities.Where(f => f.Activityid == ocase.Currentactivityid).FirstOrDefault();
+                if (oCurrentActivity != null)
                 {
-                    foreach (Models.Action oa in octypeact.Actions)
+                    CaseActivity ocasactiv = new CaseActivity();
+                    ocasactiv.Activityid = oCurrentActivity.Activityid;
+                    ocasactiv.Activityname = oCurrentActivity.Activityname;
+                    //get current action
+                    Models.Action oact = oCurrentActivity.Actions.Where(o => o.Actionid == ocase.Currentactionid).FirstOrDefault();
+                    if (oact != null)
                     {
-
-                    }
-                    if (octypeact.Activitycomplete == false)
-                    {
-                        if (ocase.Activities.Find(e => e.Activityid == octypeact.Activityid) == null)
+                        List<Models.Action> colacts = oCurrentActivity.Actions.Where(o => o.Actionseq >= oact.Actionseq && o.Actiontype=="TASK").ToList();
+                        foreach(Models.Action o in colacts)
                         {
-                            CaseActivity ocasactiv = new CaseActivity();
-                            ocasactiv.Activityid = octypeact.Activityid;
-                            ocase.Activities.Add(ocasactiv);
+                            o.Activityid = oCurrentActivity.Activityid;
+                            o.Activityseq = oCurrentActivity.Activityseq;
+                            o.Caseid = id;
+                          if (  helperservice.GetCompareResults(ocase,o, _ActionAuthLogscollection))
+                            {
+                                CaseAction ocurract = new CaseAction();
+                                ocurract.Actionid = o.Actionid;
+                                ocurract.Actiontype = o.Actiontype;
+                                ocurract.Actionname = o.Actionname;
+                                ocurract.Actionseq = o.Actionseq;
+                                ocasactiv.Actions.Add(ocurract);
+                            }
+                            
                         }
-                        
                     }
-                   
+
+                    ocase.Activities.Add(ocasactiv);
                 }
+
+
+                //set all field attributes
+                foreach(Casefield f in ocase.Fields)
+                {
+                    foreach(Models.Activity aa in oct.Activities)
+                    {
+                        foreach(Models.Action  aat in aa.Actions)
+                        {
+                            Casetypefield cf = aat.Fields.Where(fl => fl.Fieldid == f.Fieldid).FirstOrDefault();
+                            if (cf != null){
+                                f.Fieldname= cf.Fieldname;
+                                f.Required = cf.Required;
+                                f.Seq = cf.Seq;
+                                f.Options = cf.Options;
+                            }
+                        }
+                    }
+                }
+                //get top one that is not yet complete
+                //if (colact != null)
+                //{
+                //    Activity a = colact.FirstOrDefault();
+                //    if (a != null)
+                //    {
+                //        CaseActivity ocasactiv = new CaseActivity();
+                //        ocasactiv.Activityid = a.Activityid;
+                //        ocase.Activities.Add(a);
+                //    }
+
+                //}
 
 
                 return ocase;
@@ -121,18 +162,17 @@ namespace MBADCases.Services
                 oct.Activities.Sort(comparer);
                 foreach (Activity odact in oct.Activities)
                 {
-
                     //set this as current activity
+                    ocasedb.Currentactivityid = odact.Activityid;
                     CaseActivityHistory icaseActivity = new CaseActivityHistory();
                     icaseActivity.Caseid = ocasedb._id;
                     icaseActivity.Activityid = odact.Activityid;
                     icaseActivity.Activityseq = odact.Activityseq;
                     icaseActivity.Activitydisabled = odact.Activitydisabled;
+                    
                     int totalactionsfin = 0;
                     if (odact.Activitydisabled == false)
                     {
-                      
-                       
                         //if reaches this point then check if the first activity action is an EVENT OR TASK
                         //execute EVENT TYPE actions until it reaches a task
                         IComparer<Models.Action> compareract = new MyActionOrder();
@@ -140,20 +180,20 @@ namespace MBADCases.Services
 
                         foreach (Models.Action iAct in odact.Actions)
                         {
+                            //regardless of its a TASK OR EVENT check if its authorized
                             CaseAction iCaseActn = new CaseAction();
                             iCaseActn.Actionid = iAct.Actionid;
                             iCaseActn.Actiontype = iAct.Actiontype;
                             string sFieldValue=string.Empty;
-                            if (iAct.Actionauth != null) {
-                                if(iAct.Actionauth.Fieldid!=null || iAct.Actionauth.Fieldid == "") { 
-                                iAct.Actionauth.ValueX = helperservice.GetFieldValueByFieldID(ocase, iAct.Actionauth.Fieldid);
-                                }
-                            }
+                            
                             iAct.Caseid = ocasedb._id;
                             iAct.Activityid = odact.Activityid;
-                            if (iAct.Actiontype.ToUpper() == "EVENT")
+                            iAct.Activityseq = odact.Activityseq;
+                            if (helperservice.GetCompareResults(ocase,iAct, _ActionAuthLogscollection) == true)
                             {
-                                if (helperservice.GetCompareResults(iAct, _ActionAuthLogscollection) == true)
+                                ocasedb.Currentactionid = iAct.Actionid;
+
+                                if (iAct.Actiontype.ToUpper() == "EVENT")
                                 {
                                     if (iAct.Fields != null)
                                     {
@@ -166,12 +206,12 @@ namespace MBADCases.Services
                                             {
                                                 if (casefield.Value == null || casefield.Value == "")
                                                 {
-                                                    throw new Exception("Field is reqired, Fieldid:" + ofl.Fieldid);
+                                                    throw new Exception("Field and its value is required, {\"Fieldid\":\"" + ofl.Fieldid + "\",\"Value\":\"100000\"}");
                                                 }
                                             }
                                             else
                                             {
-                                                throw new Exception("Field and its value is missing, Fieldid:" + ofl.Fieldid);
+                                                throw new Exception("Field and its value is missing, {\"Fieldid\":\"" + ofl.Fieldid + "\",\"Value\":\"100000\"}" );
                                             }
                                         }
 
@@ -236,13 +276,21 @@ namespace MBADCases.Services
                                     }
                                     
                                 }
-                                else //action condition is false
+                                else
                                 {
-                                    iCaseActn.Actioncomplete = true;
-                                    iCaseActn.Actioncompletedate = DateTime.UtcNow.ToString();
-                                    iCaseActn.Actionstatus = "SKIPPED";
-                                    icaseActivity.Actions.Add(iCaseActn);
+                                    // you hit a TASK
+                                    //STOP
+                                    break;
                                 }
+                                
+                            }
+                            else //action condition is false
+                            {
+                                iCaseActn.Actioncomplete = true;
+                                iCaseActn.Actioncompletedate = DateTime.UtcNow.ToString();
+                                iCaseActn.Actionstatus = "SKIPPED";
+                                icaseActivity.Actions.Add(iCaseActn);
+                            }
                                 totalactionsfin = totalactionsfin + 1;
                                 if (totalactionsfin == odact.Actions.Count)
                                 {
@@ -250,13 +298,7 @@ namespace MBADCases.Services
                                     icaseActivity.Activitycompletedate = DateTime.UtcNow.ToString();
                                     _caseactivityhistorycollection.InsertOneAsync(icaseActivity);
                                 }
-                                
-                            }
-                            else
-                            {
-                                //stop
-                                break;
-                            }
+                             
 
                         }
                         

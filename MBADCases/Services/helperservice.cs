@@ -86,10 +86,16 @@ namespace MBADCases.Services
             }
             return "";
         }
-        public static bool GetCompareResults(  Models.Action iAct , IMongoCollection<ActionAuthLogs> Logcollection)
+        public static bool GetCompareResults( Case ocase, Models.Action iAct , IMongoCollection<ActionAuthLogs> Logcollection)
         {
             if (iAct  == null) { return true;  }
             if (iAct.Actionauth == null) { return WriteCompareLog(Logcollection, iAct, "Action Auth configuration is null", true); }
+             
+                if (iAct.Actionauth.Fieldid != null || iAct.Actionauth.Fieldid == "")
+                {
+                    iAct.Actionauth.ValueX = helperservice.GetFieldValueByFieldID(ocase, iAct.Actionauth.Fieldid);
+                }
+             
             var sactionconfig = Newtonsoft.Json.JsonConvert.SerializeObject(iAct.Actionauth);
             var defaultret = iAct.Actionauth.Defaultreturn;
             var bretiftrue = iAct.Actionauth.Returniftrue;
@@ -128,7 +134,7 @@ namespace MBADCases.Services
         {
             
 
-            ActionAuthLogs olog = new ActionAuthLogs() { Activityid = iAct.Activityid, Caseid = iAct.Caseid, Logdesc = Logdesc, Actionid = iAct.Actionid, Actionauthresult = Returnbool };
+            ActionAuthLogs olog = new ActionAuthLogs() { Activityid = iAct.Activityid, Caseid = iAct.Caseid, Logdesc = Logdesc, Actionid = iAct.Actionid, Actionauthresult = Returnbool,Actionseq=iAct.Actionseq, Activityseq=iAct.Activityseq  };
 
                  
                 _logs.InsertOneAsync(olog);
