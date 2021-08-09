@@ -18,7 +18,7 @@ namespace MBADCases.Services
         private IMongoCollection<CaseType> _casetypecollection;
         private IMongoCollection<CaseActivityHistory> _caseactivityhistorycollection;
         private IMongoCollection<ActionAuthLogs> _ActionAuthLogscollection;
-        
+        private IMongoCollection<Adapter> _Adapterscollection;
         private IMongoDatabase MBADDatabase;
         private IMongoDatabase TenantDatabase;
         ICasesDatabaseSettings _settings;
@@ -44,6 +44,8 @@ namespace MBADCases.Services
                 _casedbcollection= TenantDatabase.GetCollection<CaseDB>(_settings.CasesCollectionName);
                 _caseactivityhistorycollection = TenantDatabase.GetCollection<CaseActivityHistory>(_settings.Caseactivityhistorycollection);
                 _ActionAuthLogscollection = TenantDatabase.GetCollection<ActionAuthLogs>(_settings.ActionAuthLogscollection);
+                _Adapterscollection = TenantDatabase.GetCollection<Adapter>(_settings.Adapterscollection);
+
                 _tenantid = tenantid;
 
 
@@ -236,6 +238,20 @@ namespace MBADCases.Services
 
                                     if (iAct.Adapterid != null)
                                     {
+                                        Adapter oad;
+                                        if ((oad=_Adapterscollection.Find(a => a.Name.ToLower() == iAct.Adapterid.ToLower()).FirstOrDefault())!=null)
+                                        {
+                                            try
+                                            {
+                                                var sret = helperservice.ExecuteAdapter(oad);
+                                            }
+                                            catch
+                                            {
+                                                //log
+                                            }
+
+                                        };
+                                      
                                         //execute adapter
                                         oAdpResp = iAct.Adapterresponse.Where(a => a.Actionresponse.ToUpper() == "TRUE").FirstOrDefault();
                                     }

@@ -49,7 +49,7 @@ namespace MBADCases.Controllers
                 {
                     oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "404", "Case Search", usrid, null);
                     ocase = new Case();
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
+                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, Messageype = oms.Messageype, _id = oms._id };
 
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
                 }
@@ -59,8 +59,6 @@ namespace MBADCases.Controllers
                     ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 }
-
-                
             }
             catch (Exception ex)
             {
