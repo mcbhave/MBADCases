@@ -1,5 +1,6 @@
 ﻿using MBADCases.Models;
- 
+using MongoDB.Bson;
+using MongoDB.Bson.Path;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using System;
@@ -98,47 +99,94 @@ namespace MBADCases.Services
 
         }
        
-        public static string ExecuteAdapter(Adapter oa)
+        public static List<Casefield> ExecuteAdapter(  Adapter oa, Adapterresponsemap iact, StringBuilder slog)
         {
-            try { 
-            string sDefaultReturn = "TRUE";
+             
+            try {
+                
             //Adapter oa = new Adapter();
-            if(oa.Url==null || oa.Url == "") { return sDefaultReturn; }
-            if (oa.Method == null || oa.Method == "") { return sDefaultReturn; }
-                HttpClient _client = new HttpClient();
-               
+            if (oa.Url==null || oa.Url == "") { slog.Append("url not set "); return null; }
+            if (oa.Method == null || oa.Method == "") { slog.Append("method not set"); return null; }
+                HttpClient _client = new HttpClient();              
                 foreach (string s in oa.Headers)
                 {
                     var shead = s.Split(":");
                     _client.DefaultRequestHeaders.Add(shead[0], shead[1]);
                     //_client.DefaultRequestHeaders.Accept.Add(
-                    //                  new MediaTypeWithQualityHeaderValue("application/json"));
+                    //new MediaTypeWithQualityHeaderValue("application/json"));
                 }
-                string sReturnresp;
-            switch (oa.Method.ToUpper())
-            {
-                case "GET":
-                        sReturnresp = GetRequest(oa.Url, _client);
-                        //dynamic obj = JsonConvert.DeserializeObject<ExpandoObject>(sReturnresp);
-                      var omd=  MongoDB.Bson.BsonDocument.Parse(sReturnresp);
-                    var omda=    omd.Where(o => o.Name == "Actions.Actionid").FirstOrDefault();
-                        break;
-               case "POST":
-                       // sReturnresp = PostRequest<string>(oa.Url,oa.Body, _client);
+               
+                string sReturnresp = string.Empty;
+                slog.Append("Method:" + oa.Method);
+             
 
-                       break;
+                sReturnresp = GetRESTResponse(oa.Method.ToUpper(), oa.Url, oa.Body, _client, slog);
 
+                if(sReturnresp=="") { slog.Append("No response found");  return null; };
+
+                slog.Append("Setting Fields:");
+                BsonDocument omd = MongoDB.Bson.BsonDocument.Parse(sReturnresp);
+                List<Casefield> ocasedb = new List<Casefield>();
+                foreach (Casetypefield f in iact.Fields)
+                {
+                    slog.Append("Field:" + f.Fieldid);
+                    //"$.activities[?(@.activityid == 'VALIDATE')]"
+                    try
+                    {
+                        var svalue = omd.SelectToken(f.Value, true).AsString;
+                        slog.Append("Value:" + svalue);
+                        Casefield ocasesetfld;
+                        //add field
+                        ocasesetfld = new Casefield();
+                        ocasesetfld.Fieldid = f.Fieldid;
+                        ocasesetfld.Value = svalue;
+                        ocasedb.Add(ocasesetfld);
+                    }
+                    catch (Exception e)
+                    {
+                        slog.Append("Exception:" + e.ToString());
+                    }
                 }
-
-            return sDefaultReturn;
+                return ocasedb;
             }
-            catch
+            catch(Exception ex)
             {
                 //log
-                throw;
+                throw ex;
             }
         }
+        //public static BsonValue GetPath(this BsonValue bson, string path)
+        //{
+        //    if (bson.BsonType != BsonType.Document)
+        //    {
+        //        return bson;
+        //    }
+        //    if (bson.BsonType != BsonType.Array)
+        //    {
+        //        return bson;
+        //    }
 
+        //    var doc = bson.AsBsonDocument;
+
+        //    //var tokens = path.Split(".".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+        //    var tokens = path.Split(new[] { '.' }, 2, StringSplitOptions.RemoveEmptyEntries);
+        //    if (tokens.Length == 0)
+        //    {
+        //        return doc;
+        //    }
+
+        //    if (!doc.Contains(tokens[0]))
+        //    {
+        //        return BsonNull.Value;
+        //    }
+
+        //    if (tokens.Length > 1)
+        //    {
+        //        return GetPath(doc[tokens[0]], tokens[1]);
+        //    }
+
+        //    return doc[tokens[0]];
+        //}
         //private static string CallGET(string uri, HttpClient client)
         //{
         //    var webRequest = new HttpRequestMessage(HttpMethod.Get, uri)
@@ -153,21 +201,99 @@ namespace MBADCases.Services
         //        //return JsonConvert.DeserializeObject<T>(responseBody);
         //        return responseBody;
         //    }
-                
+
 
 
         //}
-        public static string GetRequest (string uri, HttpClient client)
+        public static string GetRESTResponse (string smethod ,string uri,string content, HttpClient client, StringBuilder slog)
         {
             try
             {
                 using (  client )
                 {
-                    using (HttpResponseMessage response =   client.GetAsync(uri).GetAwaiter().GetResult())
-                    {  
+                    StringContent serialized;
+                    switch (smethod.ToUpper())
+                    {
+                        case "GET":
+                            using (HttpResponseMessage response = client.GetAsync(uri).GetAwaiter().GetResult())
+                            {
+                                response.EnsureSuccessStatusCode();
+                                slog.Append("Response: ");
+                                string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                                slog.Append(responseBody);
+                                return responseBody;
+                            }
+
+                        case "POST":
+                              serialized = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+
+                            using (HttpResponseMessage response = client.PostAsync(uri, serialized).GetAwaiter().GetResult())
+                            {
+                                response.EnsureSuccessStatusCode();
+                                slog.Append("Response: ");
+                                string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                                slog.Append(responseBody);
+                                return responseBody;
+                            }
+                        case "PUT":
+                              serialized = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+
+                            using (HttpResponseMessage response = client.PostAsync(uri, serialized).GetAwaiter().GetResult())
+                            {
+                                response.EnsureSuccessStatusCode();
+                                slog.Append("Response: ");
+                                string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                                slog.Append(responseBody);
+                                return responseBody;
+                            }
+                        case "DELETE":
+                            using (HttpResponseMessage response = client.DeleteAsync(uri).GetAwaiter().GetResult())
+                            {
+                                response.EnsureSuccessStatusCode();
+                                slog.Append("Response: ");
+                                string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                                slog.Append(responseBody);
+                                return responseBody;
+                            }
+                        case "PATCH":
+                            serialized = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+
+                            using (HttpResponseMessage response = client.PostAsync(uri, serialized).GetAwaiter().GetResult())
+                            {
+                                response.EnsureSuccessStatusCode();
+                                slog.Append("REST call successful");
+                                string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                                slog.Append(responseBody);
+                                return responseBody;
+                            }
+                    }
+                    return "";
+                }
+
+                
+            }
+            catch (Exception e)
+            {
+                slog.Append("REST Exception : " + e.ToString());
+                return "";
+            }
+        }
+        public static string PostRequest(string uri, string content, HttpClient client)
+        {
+            try
+            {
+                using (client)
+                {
+                    client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    var serialized = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+
+                    using (HttpResponseMessage response =   client.PostAsync(uri, serialized).GetAwaiter().GetResult())
+                    {
                         response.EnsureSuccessStatusCode();
                         string responseBody =   response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                        //return JsonConvert.DeserializeObject<T>(responseBody);
+
                         return responseBody;
                     }
                 }
@@ -177,11 +303,63 @@ namespace MBADCases.Services
                 throw;
             }
         }
+        public static string PutRequest(string uri, string content, HttpClient client)
+        {
+            try
+            {
+                using (client)
+                {
+                    client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    var serialized = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+
+                    using (HttpResponseMessage response = client.PutAsync(uri, serialized).GetAwaiter().GetResult())
+                    {
+                        response.EnsureSuccessStatusCode();
+                        string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                        return responseBody;
+                    }
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+        public static string DeleteRequest(string uri, string content, HttpClient client)
+        {
+            try
+            {
+                using (client)
+                {
+                    client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    var serialized = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+
+                    using (HttpResponseMessage response = client.DeleteAsync(uri).GetAwaiter().GetResult())
+                    {
+                        response.EnsureSuccessStatusCode();
+                        string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                        return responseBody;
+                    }
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+         
+
         //public static async Task<string> GetRequest<T>(string uri, HttpClient client)
         //{
         //    try
         //    {
-        //        using (  client )
+        //        using (client)
         //        {
         //            using (HttpResponseMessage response = await client.GetAsync(uri))
         //            {
@@ -197,31 +375,31 @@ namespace MBADCases.Services
         //        throw;
         //    }
         //}
-        public static async Task<string> PostRequest<T>(string uri, string content, HttpClient client)
-        {
-            try
-            {
-                using (client)
-                {
-                    client.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
+        //public static async Task<string> PostRequest<T>(string uri, string content, HttpClient client)
+        //{
+        //    try
+        //    {
+        //        using (client)
+        //        {
+        //            client.DefaultRequestHeaders.Accept.Add(
+        //            new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    var serialized = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+        //            var serialized = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
 
-                    using (HttpResponseMessage response = await client.PostAsync(uri, serialized))
-                    {
-                        response.EnsureSuccessStatusCode();
-                        string responseBody = await response.Content.ReadAsStringAsync();
+        //            using (HttpResponseMessage response = await client.PostAsync(uri, serialized))
+        //            {
+        //                response.EnsureSuccessStatusCode();
+        //                string responseBody = await response.Content.ReadAsStringAsync();
 
-                        return  responseBody ;
-                    }
-                }
-            }
-            catch  
-            {
-                throw;
-            }
-        }
+        //                return  responseBody ;
+        //            }
+        //        }
+        //    }
+        //    catch  
+        //    {
+        //        throw;
+        //    }
+        //}
         public static string GetFieldValueByFieldID(Case fcase, string Fieldid)
         {
             if (fcase != null)
@@ -426,12 +604,99 @@ namespace MBADCases.Services
 
 
     }
-       
-    public class WebREST
+
+    public sealed class JsonNetValueSystem  
     {
-        
-    }
+
+
+        public bool HasMember(object value, string member)
+        {
+            if (value is Newtonsoft.Json.Linq.JObject)
+            {
+                // return (value as JObject).Properties().Any(property => property.Name == member);
+
+                foreach (Newtonsoft.Json.Linq.JProperty property in (value as Newtonsoft.Json.Linq.JObject).Properties())
+                {
+                    if (property.Name == member)
+                        return true;
+                }
+
+                return false;
+            }
+
+            if (value is Newtonsoft.Json.Linq.JArray)
+            {
+                int index = ParseInt(member, -1);
+                return index >= 0 && index < (value as Newtonsoft.Json.Linq.JArray).Count;
+            }
+            return false;
+        }
+
+
+        public object GetMemberValue(object value, string member)
+        {
+            if (value is Newtonsoft.Json.Linq.JObject)
+            {
+                var memberValue = (value as Newtonsoft.Json.Linq.JObject)[member];
+                return memberValue;
+            }
+            if (value is Newtonsoft.Json.Linq.JArray)
+            {
+                int index = ParseInt(member, -1);
+                return (value as Newtonsoft.Json.Linq.JArray)[index];
+            }
+            return null;
+        }
+
+
+        public System.Collections.IEnumerable GetMembers(object value)
+        {
+            System.Collections.Generic.List<string> ls = new System.Collections.Generic.List<string>();
+
+            var jobject = value as Newtonsoft.Json.Linq.JObject;
+            /// return jobject.Properties().Select(property => property.Name);
+
+            foreach (Newtonsoft.Json.Linq.JProperty property in jobject.Properties())
+            {
+                ls.Add(property.Name);
+            }
+
+            return ls;
+        }
+
+
+        public bool IsObject(object value)
+        {
+            return value is Newtonsoft.Json.Linq.JObject;
+        }
+
+
+        public bool IsArray(object value)
+        {
+            return value is Newtonsoft.Json.Linq.JArray;
+        }
+
+
+        public bool IsPrimitive(object value)
+        {
+            if (value == null)
+                throw new System.ArgumentNullException("value");
+
+            return value is Newtonsoft.Json.Linq.JObject || value is Newtonsoft.Json.Linq.JArray ? false : true;
+        }
+
+
+        private int ParseInt(string s, int defaultValue)
+        {
+            int result;
+            return int.TryParse(s, out result) ? result : defaultValue;
+        }
+
+
     }
 
-   
- 
+
+}
+
+
+

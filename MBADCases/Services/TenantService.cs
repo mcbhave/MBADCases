@@ -14,7 +14,7 @@ namespace MBADCases.Services
         private readonly IMongoCollection<Tenant> _tenant;
         private IMongoDatabase MBADDatabase;
         ICasesDatabaseSettings _settings;
-        private string _tenantid;
+        //private string _tenantid;
         public TenantService(ICasesDatabaseSettings settings)
         {
             try

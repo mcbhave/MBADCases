@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.2.0" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
+    <PackageReference Include="MongoDB.Bson.Path" Version="1.0.5" />
     <PackageReference Include="MongoDB.Driver" Version="2.13.0" />
     <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.2" />
   </ItemGroup>

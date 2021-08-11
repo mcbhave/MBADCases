@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using MBADCases.Models;
 using Microsoft.AspNetCore.Http;
@@ -235,31 +236,38 @@ namespace MBADCases.Services
                                     }
 
                                     Adapterresponse oAdpResp = new Adapterresponse();
-
-                                    if (iAct.Adapterid != null)
+                                    List<Casefield> colfld; 
+                                    if (iAct.Adapterresponsemaps != null && iAct.Adapterresponsemaps.Count > 0)
                                     {
-                                        Adapter oad;
-                                        if ((oad=_Adapterscollection.Find(a => a.Name.ToLower() == iAct.Adapterid.ToLower()).FirstOrDefault())!=null)
+                                      foreach(Adapterresponsemap oad in iAct.Adapterresponsemaps)
                                         {
-                                            try
+                                            Adapter oadp;
+                                            if ((oadp = _Adapterscollection.Find(a => a.Name.ToLower() == oad.Adapterid.ToLower()).FirstOrDefault()) != null)
                                             {
-                                                var sret = helperservice.ExecuteAdapter(oad);
-                                            }
-                                            catch
-                                            {
-                                                //log
-                                            }
+                                                StringBuilder slog = new StringBuilder();
+                                                try
+                                                {
+                                                    slog.Append("Action:" + iAct.Actionid );
+                                                    slog.Append("Adapter:" + oad.Adapterid);
+                                                    colfld = helperservice.ExecuteAdapter(oadp, oad, slog);
+                                                }
+                                                catch
+                                                {
+                                                    //log
+                                                }
 
-                                        };
+                                            };
+                                        }
+                                       
                                       
                                         //execute adapter
-                                        oAdpResp = iAct.Adapterresponse.Where(a => a.Actionresponse.ToUpper() == "TRUE").FirstOrDefault();
+                                        oAdpResp = iAct.Adapterresponses.Where(a => a.Actionresponse.ToUpper() == "TRUE").FirstOrDefault();
                                     }
                                     else
                                     {
                                         //Adapterresponseattr is also null in this case
                                         //use TRUE
-                                        oAdpResp = iAct.Adapterresponse.Where(a => a.Actionresponse.ToUpper() == "TRUE").FirstOrDefault();
+                                        oAdpResp = iAct.Adapterresponses.Where(a => a.Actionresponse.ToUpper() == "TRUE").FirstOrDefault();
                                     }
 
                                     if (oAdpResp != null)

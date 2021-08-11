@@ -16,10 +16,19 @@ namespace MBADCases.Services
        
         public MessageService(ICasesDatabaseSettings settings, IMongoDatabase TenantDatabase, IMongoDatabase MBADDatabase)
         {
+            if (TenantDatabase == null) { throw new Exception("Unable to connect to the tenant database."); }
             var client = new MongoClient(settings.ConnectionString);
             _database = TenantDatabase;
-            _message = TenantDatabase.GetCollection<Message>(settings.MessagesCollectionName);
-            _messagemaster = MBADDatabase.GetCollection<Message>("Logs");
+            try
+            {
+                _message = TenantDatabase.GetCollection<Message>(settings.MessagesCollectionName);
+                _messagemaster = MBADDatabase.GetCollection<Message>("Logs");
+            }
+            catch
+            {
+                throw new Exception("Unable to connect to the database.");
+            }
+            
         }
         public Message Create( Message omess)
         {
