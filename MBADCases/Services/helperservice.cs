@@ -99,7 +99,7 @@ namespace MBADCases.Services
 
         }
        
-        public static List<Casefield> ExecuteAdapter(  Adapter oa, Adapterresponsemap iact, StringBuilder slog)
+        public static List<SetCasetypefield> ExecuteAdapter(  Adapter oa, Adapterresponsemap iact, StringBuilder slog)
         {
              
             try {
@@ -126,18 +126,18 @@ namespace MBADCases.Services
 
                 slog.Append("Setting Fields:");
                 BsonDocument omd = MongoDB.Bson.BsonDocument.Parse(sReturnresp);
-                List<Casefield> ocasedb = new List<Casefield>();
-                foreach (Casetypefield f in iact.Fields)
+                List<SetCasetypefield> ocasedb = new List<SetCasetypefield>();
+                foreach (SetCasetypefield f in iact.Fields)
                 {
                     slog.Append("Field:" + f.Fieldid);
                     //"$.activities[?(@.activityid == 'VALIDATE')]"
                     try
                     {
                         var svalue = omd.SelectToken(f.Value, true).AsString;
-                        slog.Append("Value:" + svalue);
-                        Casefield ocasesetfld;
+                        slog.Append(".Value=" + svalue);
+                        SetCasetypefield ocasesetfld;
                         //add field
-                        ocasesetfld = new Casefield();
+                        ocasesetfld = new SetCasetypefield();
                         ocasesetfld.Fieldid = f.Fieldid;
                         ocasesetfld.Value = svalue;
                         ocasedb.Add(ocasesetfld);

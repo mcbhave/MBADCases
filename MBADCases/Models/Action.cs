@@ -36,7 +36,6 @@ namespace MBADCases.Models
             // A null value means that this object is greater.
             if (compareSeq == null)
                 return 1;
-
             else
                 return this.Actionseq.CompareTo(compareSeq.Actionseq);
         }

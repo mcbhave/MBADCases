@@ -17,6 +17,8 @@ namespace MBADCases.Models
 
         public string Adapterscollection { get; set; }
         public string Vaultcollection { get; set; }
+
+        public string AdapterLogscollection { get; set; }
     }
 
     public interface ICasesDatabaseSettings
@@ -30,5 +32,6 @@ namespace MBADCases.Models
         public string ActionAuthLogscollection { get; set; }
         public string Adapterscollection { get; set; }
         public string Vaultcollection { get; set; }
+        public string AdapterLogscollection { get; set; }
     }
 }

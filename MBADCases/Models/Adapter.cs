@@ -30,18 +30,20 @@ namespace MBADCases.Models
     {
         public Adapterresponse()
         {
-            Fields = new List<SetCasetypefield>();
+              
+             Fields = new List<SetCasetypefield>();
         }
         public string Response { get; set; }
         public List<SetCasetypefield> Fields { get; set; }
         public string Actionresponse { get; set; }
 
+        public Adapterresponsemap Adapterresponsemaps { get; set; }
         public string Adapterresponseattr { get; set; }
 
     }
     public class Adapterresponsemap
     {
         public string Adapterid { get; set; }
-        public List<Casetypefield> Fields { get; set; }
+        public List<SetCasetypefield> Fields { get; set; }
     }
 }

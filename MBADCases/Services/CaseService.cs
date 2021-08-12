@@ -19,6 +19,7 @@ namespace MBADCases.Services
         private IMongoCollection<CaseType> _casetypecollection;
         private IMongoCollection<CaseActivityHistory> _caseactivityhistorycollection;
         private IMongoCollection<ActionAuthLogs> _ActionAuthLogscollection;
+        private IMongoCollection<AdapterMapLog> _AdapterLogscollection;
         private IMongoCollection<Adapter> _Adapterscollection;
         private IMongoDatabase MBADDatabase;
         private IMongoDatabase TenantDatabase;
@@ -46,7 +47,7 @@ namespace MBADCases.Services
                 _caseactivityhistorycollection = TenantDatabase.GetCollection<CaseActivityHistory>(_settings.Caseactivityhistorycollection);
                 _ActionAuthLogscollection = TenantDatabase.GetCollection<ActionAuthLogs>(_settings.ActionAuthLogscollection);
                 _Adapterscollection = TenantDatabase.GetCollection<Adapter>(_settings.Adapterscollection);
-
+                _AdapterLogscollection = TenantDatabase.GetCollection<AdapterMapLog>(_settings.AdapterLogscollection);
                 _tenantid = tenantid;
 
 
@@ -236,7 +237,7 @@ namespace MBADCases.Services
                                     }
 
                                     Adapterresponse oAdpResp = new Adapterresponse();
-                                    List<Casefield> colfld; 
+                                    List<SetCasetypefield> colfld; 
                                     if (iAct.Adapterresponsemaps != null && iAct.Adapterresponsemaps.Count > 0)
                                     {
                                       foreach(Adapterresponsemap oad in iAct.Adapterresponsemaps)
@@ -250,10 +251,34 @@ namespace MBADCases.Services
                                                     slog.Append("Action:" + iAct.Actionid );
                                                     slog.Append("Adapter:" + oad.Adapterid);
                                                     colfld = helperservice.ExecuteAdapter(oadp, oad, slog);
+                                                    AdapterMapLog olog = new AdapterMapLog() { Caseid = ocasedb._id,Log=slog.ToString(), Casetype=ocasedb.Casetype, Actionid=iAct.Actionid,Adapterid=oadp.Name,Createdate=  DateTime.UtcNow.ToString() };
+
+                                                    _AdapterLogscollection.InsertOne(olog);
+
+                                                    foreach (Models.SetCasetypefield ofl in colfld)
+                                                    {
+                                                        CaseDBfield ocasesetfld;
+                                                        if ((ocasesetfld = ocasedb.Fields.Where(F => F.Fieldid.ToLower() == ofl.Fieldid.ToLower()).FirstOrDefault()) != null)
+                                                        {
+                                                            ocasesetfld.Value = ofl.Value;
+                                                        }
+                                                        else
+                                                        {
+                                                            //add field
+                                                            ocasesetfld = new CaseDBfield();
+                                                            ocasesetfld.Fieldid = ofl.Fieldid;
+                                                            ocasesetfld.Value = ofl.Value;
+                                                            ocasedb.Fields.Add(ocasesetfld);
+                                                        }
+                                                    }
+
                                                 }
                                                 catch
                                                 {
                                                     //log
+                                                    AdapterMapLog olog = new AdapterMapLog() { Caseid = ocasedb._id, Log = slog.ToString(), Casetype = ocasedb.Casetype, Actionid = iAct.Actionid, Adapterid = oadp.Name, Createdate = DateTime.UtcNow.ToString() };
+
+                                                    _AdapterLogscollection.InsertOne(olog);
                                                 }
 
                                             };
