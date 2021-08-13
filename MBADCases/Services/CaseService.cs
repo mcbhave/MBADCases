@@ -236,6 +236,7 @@ namespace MBADCases.Services
                     //Register new case type
                     oct= octsr.Create(ocasedb.Casetype, oct);
                 }
+
                 
                 IComparer<Activity> comparer = new MyActivityOrder();
                 oct.Activities.Sort(comparer);
