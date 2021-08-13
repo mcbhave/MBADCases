@@ -1,67 +1,63 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using MBADCases.Services;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MBADCases.Models;
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
+using MBADCases.Authentication;
+using MongoDB.Bson;
+using System;
+using MongoDB.Bson.Serialization;
+using Microsoft.AspNetCore.Http;
 namespace MBADCases.Authentication
 {
-    [Route("api/[controller]")]
     [ApiController]
-    //[BasicAuthFilter()]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
+    [Route("v{version:apiVersion}/[controller]")]
+    [BasicAuthFilter()]
     public class SearchCasesController : ControllerBase
     {
-        // GET: api/<SearchCasesController>
-        [HttpGet]
-        public string Get()
+        private readonly CaseService _caseservice;
+        public SearchCasesController(CaseService caseservice)
         {
-            List<Case> colcases = new List<Case>();
-            Case ocase = new Case() { _id = Guid.NewGuid().ToString(), Casetype = "Dispute", Casetitle = "MB Test 1" };
-            colcases.Add(ocase);
-            ocase = new Case() { _id = Guid.NewGuid().ToString(), Casetype = "Dispute", Casetitle = "MB Test 2" };
-            colcases.Add(ocase);
-            ocase = new Case() { _id = Guid.NewGuid().ToString(), Casetype = "Dispute", Casetitle = "MB Test 3" };
-            colcases.Add(ocase);
-            ocase = new Case() { _id = Guid.NewGuid().ToString(), Casetype = "Dispute", Casetitle = "MB Test 4" };
-            colcases.Add(ocase);
-            return Newtonsoft.Json.JsonConvert.SerializeObject( colcases);
+            _caseservice = caseservice;
         }
 
-       
-        // GET api/<SearchCasesController>/5
-        [HttpGet("{searchtext}")]
-        public List<Case> Get(string searchtext)
+        [MapToApiVersion("1.0")]
+        [HttpGet("{filter}", Name = "SearchCases")]
+        public IActionResult Get(string filter)
         {
-            List<Case> colcases = new List<Case>();
-            Case ocase = new Case() { _id = Guid.NewGuid().ToString(), Casetype = "Dispute", Casetitle = "MB Test 1",Casedescription="Case description 1" };
-            colcases.Add(ocase);
-            ocase = new Case() { _id = Guid.NewGuid().ToString(), Casetype = "Dispute", Casetitle = "MB Test 2", Casedescription = "Case description 2" };
-            colcases.Add(ocase);
-            ocase = new Case() { _id = Guid.NewGuid().ToString(), Casetype = "Dispute", Casetitle = "MB Test 3", Casedescription = "Case description 3" };
-            colcases.Add(ocase);
-            ocase = new Case() { _id = Guid.NewGuid().ToString(), Casetype = "Dispute", Casetitle = "MB Test 4", Casedescription = "Case description 4" };
-            colcases.Add(ocase);
-            return colcases;
-        }
+            Message oms;
+            var usrid = HttpContext.Session.GetString("mbadtanent");
+            try
+            {
+                _caseservice.Gettenant(usrid);
 
-        // POST api/<SearchCasesController>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
+                List<BsonDocument> ocase = _caseservice.Searchcases(filter);
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
+                //if (ocase == null)
+                //{
+                //    oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "404", "Case Search", usrid, null);
+                //    ocase = new Case();
+                //    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, Messageype = oms.Messageype, _id = oms._id };
 
-        // PUT api/<SearchCasesController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+                //    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
+                //}
+                //else
+                //{
+                //    oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "200", "Case Search", usrid, null);
+                //    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, Messageype = oms.Messageype, _id = oms._id };
+                //    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
+                //}
+            }
+            catch (Exception ex)
+            {
+                Case ocase = new Case();
+                //ocase._id = id;
+                //oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "", "", usrid, ex);
 
-        // DELETE api/<SearchCasesController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+                //return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase._id, oms));
+                throw;
+            }
         }
     }
 }

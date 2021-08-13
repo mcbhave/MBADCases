@@ -26,11 +26,11 @@ namespace MBADCases.Controllers
             _caseservice = caseservice;
         }
         // GET: api/<CaseController>
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
+        //[HttpGet]
+        //public IEnumerable<string> Get()
+        //{
+        //    return new string[] { "value1", "value2" };
+        //}
 
         // GET api/<CaseController>/5
         [MapToApiVersion("1.0")]
@@ -96,8 +96,45 @@ namespace MBADCases.Controllers
             }
 
         }
-        // POST api/<CaseController>
         [MapToApiVersion("1.0")]
+        [HttpGet("{filter}", Name = "GetCasesbyfilter")]
+        public IActionResult Search(string filter)
+        {
+            Message oms;
+            var usrid = HttpContext.Session.GetString("mbadtanent");
+            try
+            {
+                _caseservice.Gettenant(usrid);
+
+                List<BsonDocument> ocase = _caseservice.Searchcases(filter);
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase.ToJson());
+                //if (ocase == null)
+                //{
+                //    oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "404", "Case Search", usrid, null);
+                //    ocase = new Case();
+                //    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, Messageype = oms.Messageype, _id = oms._id };
+
+                //    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
+                //}
+                //else
+                //{
+                //    oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "200", "Case Search", usrid, null);
+                //    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, Messageype = oms.Messageype, _id = oms._id };
+                //    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
+                //}
+            }
+            catch (Exception ex)
+            {
+                Case ocase = new Case();
+                //ocase._id = id;
+                //oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "", "", usrid, ex);
+
+                //return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase._id, oms));
+                throw;
+            }
+        }
+            // POST api/<CaseController>
+            [MapToApiVersion("1.0")]
         [HttpPost("{id:length(24)}", Name = "UpdateCase")]
         public IActionResult Post(string id,Case ocase)
         {

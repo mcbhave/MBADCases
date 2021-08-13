@@ -8,13 +8,16 @@ using MBADCases.Models;
 using Microsoft.AspNetCore.Http;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 
 namespace MBADCases.Services
 {
     public class CaseService  
     {
         private  IMongoCollection<Case> _casecollection;
+        private IMongoCollection<BsonDocument> _casecollectionlist;
         private IMongoCollection<CaseDB> _casedbcollection;
         private IMongoCollection<CaseType> _casetypecollection;
         private IMongoCollection<CaseActivityHistory> _caseactivityhistorycollection;
@@ -50,13 +53,83 @@ namespace MBADCases.Services
                 _AdapterLogscollection = TenantDatabase.GetCollection<AdapterMapLog>(_settings.AdapterLogscollection);
                 _tenantid = tenantid;
 
-
+                _casecollectionlist = TenantDatabase.GetCollection<BsonDocument>(_settings.CasesCollectionName);
             }
             catch { throw; };
         }
         //public List<Case> Get() =>
         //    _case.Find(book => true).ToList();
+        public List<BsonDocument> Searchcases(string sfilter)
+        {
+            FilterDefinition<BsonDocument> oFilterDoc  ;
+            //FilterDefinitionBuilder<BsonDocument> ofd = new FilterDefinitionBuilder<BsonDocument>();
+            var clauses = new List<FilterDefinition<BsonDocument>>();
+            var ofd = Builders<BsonDocument>.Filter;
+            string scasetype=string.Empty;
+            List<BsonDocument> colC = new List<BsonDocument>();
+            //IDictionary<string, string> sdir = new Dictionary<string, string>(); ;
+            oFilterDoc = ofd.Eq("Casestatus", scasetype);
+            try
+            {
+                if(sfilter!=null || sfilter != "")
+                {
+                    var sfl = sfilter.Split("&");
+                    foreach(string s in sfl)
+                    {
+                       var sparam= s.Split("=");
+                        if (sparam.Length == 2)
+                        {
+                            var filenameQuery = new BsonRegularExpression(sparam[1].ToString(), "i");
+                            switch (sparam[0].ToString().ToLower())
+                            {
+                                case "casetype":
+                                    clauses.Add(ofd.Eq("Casetype", filenameQuery));
+                                    break;
+                                case "casestatus":
+                                       
+                                    clauses.Add(ofd.Eq("Casestatus", filenameQuery)); // "{'$regex' : 'Open', '$options' : 'i'}"
 
+                                    break;
+                                case "currentactivityid":
+                                    clauses.Add(ofd.Eq("Currentactivityid", filenameQuery));
+                                    break;
+                                case "createdate":
+                                    clauses.Add(ofd.Eq("Createdate", filenameQuery));
+                                    break;
+                                case "createuser":
+                                    clauses.Add(ofd.Eq("Createuser", filenameQuery));
+                                    break;
+                                case "updatedate":
+                                    clauses.Add(ofd.Eq("Updatedate", filenameQuery));
+                                    break;
+                                case "updateuser":
+                                    clauses.Add(ofd.Eq("Updateuser", filenameQuery));
+                                    break;
+                                default:
+                                    clauses.Add(ofd.ElemMatch<BsonValue>(
+                                                   "Fields", new BsonDocument
+                                                               { { "Fieldid", new BsonRegularExpression(sparam[0].ToString(), "i") },
+                                                                                { "Value", new BsonDocument { { "$eq", sparam[1].ToString() } } }
+                                                               }));
+                                    //new BsonRegularExpression(sparam[0].ToString(), "i")
+                                    //colC = _casecollectionlist.Find(Builders<BsonDocument>.Filter.Eq("fields[?(@.fieldid=='" + sparam[0].ToString() + "')]", sparam[1].ToString())).ToList();
+                                    break;
+                            };
+                        }                           
+                    }
+                }
+
+                oFilterDoc = ofd.And(clauses);
+              colC = _casecollectionlist.Find(oFilterDoc ).ToList();
+
+                return colC ;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+        
         public Case Get(string id) {
             try { 
                 Case ocase= _casecollection.Find<Case>(book => book._id == id).FirstOrDefault();
