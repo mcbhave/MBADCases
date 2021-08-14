@@ -147,38 +147,54 @@ namespace MBADCases.Services
                     //Register new case type
                     oct = octsr.Create(ocase.Casetype, oct);
                 }
-
                 Activity oCurrentActivity;
-                oCurrentActivity = oct.Activities.Where(f => f.Activityid == ocase.Currentactivityid).FirstOrDefault();
-                if (oCurrentActivity != null)
-                {
-                    CaseActivity ocasactiv = new CaseActivity();
-                    ocasactiv.Activityid = oCurrentActivity.Activityid;
-                    ocasactiv.Activityname = oCurrentActivity.Activityname;
-                    //get current action
-                    Models.Action oact = oCurrentActivity.Actions.Where(o => o.Actionid == ocase.Currentactionid).FirstOrDefault();
-                    if (oact != null)
+                if (ocase.Currentactivityid != null || ocase.Currentactivityid!="") 
+                { 
+                    oCurrentActivity = oct.Activities.Where(f => f.Activityid == ocase.Currentactivityid).FirstOrDefault();
+                    if (oCurrentActivity != null)
                     {
-                        List<Models.Action> colacts = oCurrentActivity.Actions.Where(o => o.Actionseq >= oact.Actionseq && o.Actiontype=="TASK").ToList();
-                        foreach(Models.Action o in colacts)
-                        {
-                            o.Activityid = oCurrentActivity.Activityid;
-                            o.Activityseq = oCurrentActivity.Activityseq;
-                            o.Caseid = id;
-                          if (  helperservice.GetCompareResults(ocase,o, _ActionAuthLogscollection))
+                        CaseActivity ocasactiv = new CaseActivity();
+                        CaseActivityHistory oacthist= _caseactivityhistorycollection.Find<CaseActivityHistory>(f => f.Activityid == oCurrentActivity.Activityid && f.Caseid == id).FirstOrDefault();
+                            if (oacthist != null && oacthist.Activitycomplete==false) 
                             {
-                                CaseAction ocurract = new CaseAction();
-                                ocurract.Actionid = o.Actionid;
-                                ocurract.Actiontype = o.Actiontype;
-                                ocurract.Actionname = o.Actionname;
-                                ocurract.Actionseq = o.Actionseq;
-                                ocasactiv.Actions.Add(ocurract);
-                            }
-                            
-                        }
-                    }
 
-                    ocase.Activities.Add(ocasactiv);
+                                ocasactiv.Activityid = oCurrentActivity.Activityid;
+                                ocasactiv.Activityname = oCurrentActivity.Activityname;
+                                ocasactiv.Activitycomplete = oacthist.Activitycomplete;
+                                ocasactiv.Activitycompletedate = oacthist.Activitycompletedate;
+                                //get current action
+                                Models.Action oact = oCurrentActivity.Actions.Where(o => o.Actionid == ocase.Currentactionid).FirstOrDefault();
+                                if (oact != null)
+                                {
+                                    List<Models.Action> colacts = oCurrentActivity.Actions.Where(o => o.Actionseq >= oact.Actionseq && o.Actiontype == "TASK").ToList();
+                                    foreach (Models.Action o in colacts)
+                                    {
+                                        o.Activityid = oCurrentActivity.Activityid;
+                                        o.Activityseq = oCurrentActivity.Activityseq;
+                                        o.Caseid = id;
+                                        if (helperservice.GetCompareResults(ocase, o, _ActionAuthLogscollection))
+                                        {
+                                            CaseAction ocurract = new CaseAction();
+                                            ocurract.Actionid = o.Actionid;
+                                            ocurract.Actiontype = o.Actiontype;
+                                            ocurract.Actionname = o.Actionname;
+                                            ocurract.Actionseq = o.Actionseq;
+                                            ocasactiv.Actions.Add(ocurract);
+                                        }
+
+                                    }
+                                }
+                                ocase.Activities.Add(ocasactiv);
+                            }
+                            else
+                            {
+                                //if (oacthist != null && oacthist.Activitycomplete == true)
+                                //{
+                                //    ocase.Casestatus = "Closed";
+                                //    ocase.Updatedate = DateTime.UtcNow.ToString();  
+                                //}
+                            }
+                        }
                 }
 
 
@@ -221,6 +237,7 @@ namespace MBADCases.Services
         {
             try
             {
+                bool caseclosed = true;
                 //create a case _id first
                 var oc = ocase.ToJson();
                 CaseDB ocasedb = Newtonsoft.Json.JsonConvert.DeserializeObject<CaseDB>(oc);
@@ -405,6 +422,7 @@ namespace MBADCases.Services
                                 {
                                     // you hit a TASK
                                     //STOP
+                                    caseclosed = false;
                                     break;
                                 }
                                 
@@ -437,7 +455,13 @@ namespace MBADCases.Services
                     }
 
                 }
-  
+                if (caseclosed)
+                {
+                    ocasedb.Casestatus = "Closed";
+                    ocasedb.Updatedate = DateTime.UtcNow.ToString();
+                    ocasedb.Currentactivityid = "";
+                    ocasedb.Currentactionid  = "";
+                }
                 _casedbcollection.ReplaceOneAsync(ocase => ocase._id == ocasedb._id, ocasedb);
                 return ocasedb;
             }

@@ -43,6 +43,10 @@ namespace MBADCases.Models
     }
     public class Adapterresponsemap
     {
+        public Adapterresponsemap()
+        {
+            Fields = new List<SetCasetypefield>();
+        }
         public string Adapterid { get; set; }
         public List<SetCasetypefield> Fields { get; set; }
     }

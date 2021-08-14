@@ -429,11 +429,13 @@ namespace MBADCases.Services
             var bretiftrue = iAct.Actionauth.Returniftrue;
             var bretiffalse = iAct.Actionauth.Returniffalse;
             var FieldValue = iAct.Actionauth.ValueX;
-            if (iAct.Actionauth.Oprator == null || iAct.Actionauth.Oprator == "") { iAct.Actionauth.Oprator = "="; }
+            if (iAct.Actionauth == null) { return true; }
+            if (iAct.Actionauth.Operator == null || iAct.Actionauth.Operator == "") { iAct.Actionauth.Operator = "="; }
+            if (iAct.Actionauth.Type == null) { return true; }
             switch (iAct.Actionauth.Type.ToUpper())
             {
                 case "STRING":
-                    switch (iAct.Actionauth.Oprator.ToUpper())
+                    switch (iAct.Actionauth.Operator.ToUpper())
                     {
                         case "=":
                             if (FieldValue.ToLower() == iAct.Actionauth.ValueY.ToLower())

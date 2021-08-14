@@ -45,7 +45,7 @@ namespace MBADCases.Models
         public string Fieldid { get; set; }
         public string ValueX { get; set; }
         public string Type { get; set; }
-        public string Oprator { get; set; }
+        public string Operator { get; set; }
         public string ValueY { get; set; }
         public bool Defaultreturn { get; set; }
         public bool Returniftrue { get; set; }
