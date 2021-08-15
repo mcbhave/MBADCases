@@ -43,7 +43,7 @@ namespace MBADCases.Services
         public void Gettenant(string tenantid)
         {
             try {  
-            TenantDatabase = helperservice.Gettenant(tenantid, _client, MBADDatabase, _settings);
+                TenantDatabase = helperservice.Gettenant(tenantid, _client, MBADDatabase, _settings);
                 _casecollection =  TenantDatabase.GetCollection<Case>(_settings.CasesCollectionName);
                 _casetypecollection = TenantDatabase.GetCollection<CaseType>(_settings.CaseTypesCollectionName);
                 _casedbcollection= TenantDatabase.GetCollection<CaseDB>(_settings.CasesCollectionName);

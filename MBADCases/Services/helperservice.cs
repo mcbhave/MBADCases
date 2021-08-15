@@ -34,6 +34,10 @@ namespace MBADCases.Services
                     _tenant.InsertOne(oten);
 
                 }
+                if(oten.Dbconnection!=null || oten.Dbconnection != "")
+                {
+                    Client = new MongoClient(oten.Dbconnection);
+                }
                 IMongoDatabase TenantDatabase = Client.GetDatabase(oten._id); ;
 
                 SetMBADMessage(settings, MBADDatabase, ICallerType.TENANT, oten._id, tenantid, "TENANT", "Success", "Tenant login", tenantid, null);

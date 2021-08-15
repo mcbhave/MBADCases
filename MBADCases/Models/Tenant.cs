@@ -13,5 +13,10 @@ namespace MBADCases.Models
         public string _owner { get; set; }
         public string Createdate { get; set; }
         public string Createuser { get; set; }
+
+        public string Dbconnection { get; set; }
+
+        public MessageResponse Message { get; set; }
+
     }
 }

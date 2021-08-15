@@ -9,12 +9,12 @@ using MongoDB.Driver;
 
 namespace MBADCases.Services
 {
-    partial class TenantService
+    public class TenantService
     {
         private readonly IMongoCollection<Tenant> _tenant;
         private IMongoDatabase MBADDatabase;
         ICasesDatabaseSettings _settings;
-        //private string _tenantid;
+        private string _tenantid;
         public TenantService(ICasesDatabaseSettings settings)
         {
             try
@@ -27,7 +27,15 @@ namespace MBADCases.Services
             }
             catch { throw; }
         }
-        
+        public void Gettenant(string tenantid)
+        {
+            try
+            {
+                 
+                _tenantid = tenantid;
+            }
+            catch { throw; };
+        }
         //public List<Case> Get() =>
         //    _case.Find(book => true).ToList();
 
@@ -49,28 +57,38 @@ namespace MBADCases.Services
             }
 
         }
+        //public Tenant GetByName(string name)
+        //{
+        //    try
+        //    {
+        //        VaultResponse ovr = null;
+        //        Vault ov = _tenant.Find<Tenant>(book => book.Tenantname.ToLower() == name.ToLower() && book.TEN == _tenantid).FirstOrDefault();
+        //        if (ov != null)
+        //        {
+        //            ovr = new VaultResponse();
+        //            ovr._id = ov._id;
+        //            ovr.Name = ov.Name;
+        //            ovr.Macroname = ov.Macroname;
+        //            helperservice.VaultCrypt ovrcr = new helperservice.VaultCrypt(helperservice.Gheparavli(_Vaultcollection));
+        //            ovr.Encryptwithkey = ovrcr.Decrypt(ov.Encryptwithkey);
+        //            ovr.Safekeeptext = ovrcr.Decrypt(ov.Safekeeptext);
+        //        }
 
-        public void Update(string id, List<Casetypefield> caseAttrIn)
+        //        return ovr;
+
+        //    }
+        //    catch { throw; };
+        //}
+        public void Update(string id, Tenant tenantIn)
         {
             try
             {
-                foreach (Casetypefield csat in caseAttrIn)
-                {
-                    var arrayFilter = Builders<BsonDocument>.Filter.Eq("_id", new ObjectId(id))
-                            & Builders<BsonDocument>.Filter.Eq("Caseattributes.Attributeid", csat.Fieldid);
-                    var arrayUpdate = Builders<BsonDocument>.Update.Set("Caseattributes.$.Value", csat.Value);
+                _tenant.ReplaceOne(ocase => ocase._id == id, tenantIn);
 
-                    var casecoll = MBADDatabase.GetCollection<BsonDocument>(_settings.CasesCollectionName);
-                    casecoll.UpdateOne(arrayFilter, arrayUpdate);
-                }
             }
             catch { throw; }
         }
-        //public void Update(string id, Case caseIn) =>
-        //    _case.ReplaceOne(ocase => ocase._id == id, caseIn);
-
-        //public void Remove(Case caseIn) =>
-        //    _case.DeleteOne(ocase => ocase._id == caseIn._id);
+      
 
         public void Remove(string id)
         {
@@ -81,7 +99,7 @@ namespace MBADCases.Services
             catch { throw; }
         }
 
-        public Message SetMessage(Tenant ocase, string caseid, string srequest, string srequesttype, string sMessageCode, string sMessagedesc, string userid, Exception ex)
+        public Message SetMessage(string casetypeid, string srequest, string srequesttype, string sMessageCode, string sMessagedesc, string userid, Exception ex)
         {
 
             var _MessageType = string.Empty;
@@ -101,9 +119,9 @@ namespace MBADCases.Services
             }
             Message oms = new Message
             {
-                Tenantid = ocase.Tenantname,
-                Callerid = caseid,
-                Callertype = ICallerType.TENANT,
+                Tenantid = _tenantid,
+                Callerid = casetypeid,
+                Callertype = ICallerType.CASETYPE,
                 Messagecode = _MessageCode,
                 Messageype = _MessageType,
                 MessageDesc = _MessageDesc,
