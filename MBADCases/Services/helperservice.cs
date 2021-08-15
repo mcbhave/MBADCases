@@ -35,35 +35,43 @@ namespace MBADCases.Services
                     _tenant.InsertOne(oten);
 
                 }
-                if(oten.Dbconnection!=null || oten.Dbconnection != "")
+                if(oten.Dbconnection!=null && oten.Dbconnection != "")
                 {
                     if (oten.Dbconnection.Contains("@VAULT|"))
                     {
                         try
                         {
-                            VaultResponse ovr = null;
-                            IMongoCollection<Vault> _Vaultcollection = MBADDatabase.GetCollection<Vault>(settings.Vaultcollection);
-                            Vault ov = _Vaultcollection.Find<Vault>(book => book.Name.ToLower() == oten.Dbconnection.Replace("@VAULT|", "").Replace("@", "").ToLower() && book.Tenantid == tenantid).FirstOrDefault();
-                            if (ov != null)
+                           
+                            string pattern = @"@VAULT\|\w*@";
+                            // Create a Regex  
+                            Regex rg = new Regex(pattern);
+ 
+                            // Get all matches  
+                            MatchCollection matchedAuthors = rg.Matches(oten.Dbconnection);
+                            // Print all matched authors  
+                            for (int count = 0; count < matchedAuthors.Count; count++)
                             {
-                                ovr = new VaultResponse();
-                                ovr._id = ov._id;
-                                ovr.Name = ov.Name;
-                                ovr.Macroname = ov.Macroname;
-                                helperservice.VaultCrypt ovrcr = new helperservice.VaultCrypt(helperservice.Gheparavli(_Vaultcollection));
-                                ovr.Encryptwithkey = ovrcr.Decrypt(ov.Encryptwithkey);
-                                ovr.Safekeeptext = ovrcr.Decrypt(ov.Safekeeptext);
+                                oten.Dbconnection= oten.Dbconnection.Replace(matchedAuthors[count].Value, GetVaultSecret(matchedAuthors[count].Value, tenantid,Client,MBADDatabase,settings));
                             }
 
-                            Client = new MongoClient(ovr.Safekeeptext);
+                            Client = new MongoClient(oten.Dbconnection);
 
                         }
-                        catch { throw; };
+                        catch (Exception ex) { 
+                            SetMBADMessage(settings, MBADDatabase, ICallerType.TENANT, oten._id, tenantid, "TENANT", "Failed to get connection string", "Tenant login", tenantid, ex); 
+                        };
                        
                     }
                     else
                     {
-                        Client = new MongoClient(oten.Dbconnection);
+                        try
+                        {
+                            Client = new MongoClient(oten.Dbconnection);
+                        }
+                        catch (Exception ex)
+                        {
+                            SetMBADMessage(settings, MBADDatabase, ICallerType.TENANT, oten._id, tenantid, "TENANT", "Failed to connect DB", "Tenant login", tenantid, ex);
+                        };
                     }
                     
                 }
@@ -74,6 +82,33 @@ namespace MBADCases.Services
                 return TenantDatabase;
             }
             catch { throw; };
+        }
+        private static string GetVaultSecret(string stringtoreplace,string tenantid, MongoClient Client, IMongoDatabase MBADDatabase, ICasesDatabaseSettings settings)
+        {
+            try { 
+            VaultResponse ovr = null;
+            IMongoCollection<Vault> _Vaultcollection = MBADDatabase.GetCollection<Vault>(settings.Vaultcollection);
+            Vault ov = _Vaultcollection.Find<Vault>(book => book.Macroname.ToLower() == stringtoreplace.ToLower() && book.Tenantid == tenantid).FirstOrDefault();
+            if (ov != null)
+            {
+                ovr = new VaultResponse();
+                ovr._id = ov._id;
+                ovr.Name = ov.Name;
+                ovr.Macroname = ov.Macroname;
+                helperservice.VaultCrypt ovrcr = new helperservice.VaultCrypt(helperservice.Gheparavli(_Vaultcollection));
+                ovr.Encryptwithkey = ovrcr.Decrypt(ov.Encryptwithkey);
+                ovr.Safekeeptext = ovrcr.Decrypt(ov.Safekeeptext);
+                return  ovr.Safekeeptext;
+            }
+            else
+            {
+                return stringtoreplace;
+            }
+            }
+            catch
+            {
+                throw;
+            }
         }
         public static string Gheparavli(IMongoCollection<Vault> _Vaultcollection)
         {

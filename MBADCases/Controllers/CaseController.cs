@@ -7,6 +7,9 @@ using MongoDB.Bson;
 using System;
 using MongoDB.Bson.Serialization;
 using Microsoft.AspNetCore.Http;
+using System.IO;
+using MongoDB.Bson.IO;
+using Newtonsoft.Json;
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace MBADCases.Controllers
@@ -107,29 +110,29 @@ namespace MBADCases.Controllers
                 _caseservice.Gettenant(usrid);
 
                 List<BsonDocument> ocase = _caseservice.Searchcases(filter);
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase.ToJson());
-                //if (ocase == null)
-                //{
-                //    oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "404", "Case Search", usrid, null);
-                //    ocase = new Case();
-                //    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, Messageype = oms.Messageype, _id = oms._id };
-
-                //    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
-                //}
-                //else
-                //{
-                //    oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "200", "Case Search", usrid, null);
-                //    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, Messageype = oms.Messageype, _id = oms._id };
-                //    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
-                //}
+               List<Case> oretcase=new List<Case>();
+                if (ocase != null)
+                {
+                 
+                    foreach (BsonDocument b in ocase)
+                    {
+                        Case ocas = BsonSerializer.Deserialize<Case>(b.ToJson());
+                        oretcase.Add(ocas);
+                    }
+                   
+                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oretcase);
+                }
+               else 
+                {
+                    oms = _caseservice.SetMessage(ICallerType.CASE_SEARCH, "", "", "GET", "404", "Case Search", usrid, null);
+                    oretcase = new List<Case>();
+                   
+                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, ocase);
+                }
+                
             }
             catch (Exception ex)
             {
-                Case ocase = new Case();
-                //ocase._id = id;
-                //oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "", "", usrid, ex);
-
-                //return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase._id, oms));
                 throw;
             }
         }
