@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MBADCases.Services
@@ -36,7 +37,35 @@ namespace MBADCases.Services
                 }
                 if(oten.Dbconnection!=null || oten.Dbconnection != "")
                 {
-                    Client = new MongoClient(oten.Dbconnection);
+                    if (oten.Dbconnection.Contains("@VAULT|"))
+                    {
+                        try
+                        {
+                            VaultResponse ovr = null;
+                            IMongoCollection<Vault> _Vaultcollection = MBADDatabase.GetCollection<Vault>(settings.Vaultcollection);
+                            Vault ov = _Vaultcollection.Find<Vault>(book => book.Name.ToLower() == oten.Dbconnection.Replace("@VAULT|", "").Replace("@", "").ToLower() && book.Tenantid == tenantid).FirstOrDefault();
+                            if (ov != null)
+                            {
+                                ovr = new VaultResponse();
+                                ovr._id = ov._id;
+                                ovr.Name = ov.Name;
+                                ovr.Macroname = ov.Macroname;
+                                helperservice.VaultCrypt ovrcr = new helperservice.VaultCrypt(helperservice.Gheparavli(_Vaultcollection));
+                                ovr.Encryptwithkey = ovrcr.Decrypt(ov.Encryptwithkey);
+                                ovr.Safekeeptext = ovrcr.Decrypt(ov.Safekeeptext);
+                            }
+
+                            Client = new MongoClient(ovr.Safekeeptext);
+
+                        }
+                        catch { throw; };
+                       
+                    }
+                    else
+                    {
+                        Client = new MongoClient(oten.Dbconnection);
+                    }
+                    
                 }
                 IMongoDatabase TenantDatabase = Client.GetDatabase(oten._id); ;
 

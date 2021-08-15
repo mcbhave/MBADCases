@@ -65,21 +65,33 @@ namespace MBADCases.Controllers
             {
                 _vaultservice.Gettenant(usrid);
 
-                VaultResponse ocase = _vaultservice.GetByName(name);
-
-                if (ocase == null)
+                if (name.ToLower() == "all")
                 {
-                    ocase = new VaultResponse();
-                    oms = _vaultservice.SetMessage(ocase._id, name, "GET", "400", "Not found", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
-                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
+                   
+                    List<Vault> ocase = _vaultservice.Searchvault(name);
+                   
+                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 }
                 else
                 {
-                    oms = _vaultservice.SetMessage(ocase._id, name, "GET", "200", "Case type Search by name", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
-                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
+                    VaultResponse ocase = _vaultservice.GetByName(name);
+                    if (ocase == null)
+                    {
+                        ocase = new VaultResponse();
+                        oms = _vaultservice.SetMessage(ocase._id, name, "GET", "400", "Not found", usrid, null);
+                        ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, Messageype = oms.Messageype, _id = oms._id };
+                        return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
+                    }
+                    else
+                    {
+                        oms = _vaultservice.SetMessage(ocase._id, name, "GET", "200", "Case type Search by name", usrid, null);
+                        ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode, Messageype = oms.Messageype, _id = oms._id };
+                        return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
+                    }
                 }
+              
+
+             
 
             }
             catch (Exception ex)
@@ -160,6 +172,45 @@ namespace MBADCases.Controllers
             }
 
         }
-     
-}
+        [MapToApiVersion("1.0")]
+        [HttpGet("/all", Name = "GetVaultbyfilter")]
+        public IActionResult Search(string filter)
+        {
+            
+            var usrid = HttpContext.Session.GetString("mbadtanent");
+            try
+            {
+                _vaultservice.Gettenant(usrid);
+
+                List<Vault> ocase = _vaultservice.Searchvault(filter);
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
+                
+            }
+            catch (Exception ex)
+            {
+             
+                throw;
+            }
+        }
+        [HttpDelete("{id}")]
+        public IActionResult Delete(string id)
+        {
+          
+             
+            var usrid = HttpContext.Session.GetString("mbadtanent");
+           
+            try
+            {
+                _vaultservice.Gettenant(usrid);
+
+                _vaultservice.Remove(id);
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, "");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError, "");
+
+            }
+        }
+    }
 }

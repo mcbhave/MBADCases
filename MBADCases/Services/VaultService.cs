@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using MBADCases.Models;
 using MBADCases.Services;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace MBADCases.Services
@@ -9,12 +11,13 @@ namespace MBADCases.Services
     public class VaultService
     {
         private IMongoCollection<Vault> _Vaultcollection;
+        private IMongoCollection<Vault> _Vaultcollectionlist;
         //private IMongoCollection<Vault> _masterVaultcollection;
         private IMongoDatabase MBADDatabase;
         private IMongoDatabase TenantDatabase;
         ICasesDatabaseSettings _settings;
         private MongoClient _client;
-        private string _tenantid;
+        public string _tenantid;
         public VaultService(ICasesDatabaseSettings settings)
         {
             try
@@ -33,7 +36,8 @@ namespace MBADCases.Services
                 _tenantid = tenantid;
                TenantDatabase = helperservice.Gettenant(tenantid, _client, MBADDatabase, _settings);
                 _Vaultcollection = MBADDatabase.GetCollection<Vault>(_settings.Vaultcollection);
-               
+                _Vaultcollectionlist = MBADDatabase.GetCollection<Vault>(_settings.Vaultcollection);
+
 
             }
             catch { throw; };
@@ -76,7 +80,19 @@ namespace MBADCases.Services
 
             } catch { throw; };
         }
+        public List<Vault> Searchvault(string sfilter)
+        {
+            
+            try { 
+                return  _Vaultcollectionlist.Find(f=>f.Tenantid==_tenantid).ToList();
+            }
 
+ 
+            catch
+            {
+                throw;
+            }
+        }
         public Vault Create(Vault oadapter)
         {
             try
@@ -134,6 +150,17 @@ namespace MBADCases.Services
                     }
                     ov.Name = VaultIn.Name;
                     _Vaultcollection.ReplaceOne(ocase => ocase._id == id, ov);
+                }
+            }
+            catch { throw; }
+        }
+        public void Remove(string id)
+        {
+            try
+            {
+               Vault v= _Vaultcollection.Find<Vault>(f => f._id == id && f.Tenantid == _tenantid).FirstOrDefault();
+                if (v != null) { 
+                _Vaultcollection.DeleteOne(book => book._id == id);
                 }
             }
             catch { throw; }

@@ -26,7 +26,7 @@ namespace MBADCases.Authentication
         [HttpGet("{filter}", Name = "SearchCases")]
         public IActionResult Get(string filter)
         {
-            Message oms;
+             
             var usrid = HttpContext.Session.GetString("mbadtanent");
             try
             {
