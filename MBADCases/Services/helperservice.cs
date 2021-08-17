@@ -42,7 +42,7 @@ namespace MBADCases.Services
                         try
                         {
                            
-                            string pattern = @"@VAULT\|\w*@";
+                            string pattern = @"@VAULT|w*@";
                             // Create a Regex  
                             Regex rg = new Regex(pattern);
  

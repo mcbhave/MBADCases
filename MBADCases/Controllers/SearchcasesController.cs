@@ -49,8 +49,7 @@ namespace MBADCases.Authentication
                 //    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 //}
             }
-            catch (Exception ex)
-            {
+            catch {  
                 Case ocase = new Case();
                 //ocase._id = id;
                 //oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "", "", usrid, ex);

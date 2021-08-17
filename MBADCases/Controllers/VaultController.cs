@@ -186,7 +186,7 @@ namespace MBADCases.Controllers
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 
             }
-            catch (Exception ex)
+            catch  
             {
              
                 throw;
@@ -206,7 +206,7 @@ namespace MBADCases.Controllers
                 _vaultservice.Remove(id);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, "");
             }
-            catch (Exception ex)
+            catch  
             {
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError, "");
 

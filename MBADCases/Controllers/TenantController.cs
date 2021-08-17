@@ -20,6 +20,19 @@ namespace MBADCases.Controllers
         {
             _tenantservice = tenantservice;
         }
+        
+        [HttpGet]
+        public IActionResult Get()
+        {
+            var usrid = HttpContext.Session.GetString("mbadtanent");
+            try
+            {
+                _tenantservice.Gettenant(usrid);
+                Tenant ocase = _tenantservice.Get();
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
+            }
+            catch { throw; }
+         }
         // GET api/<CaseController>/5
         [MapToApiVersion("1.0")]
         [HttpGet("{id:length(24)}", Name = "GetTenant")]

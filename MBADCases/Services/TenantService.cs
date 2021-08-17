@@ -36,9 +36,9 @@ namespace MBADCases.Services
             }
             catch { throw; };
         }
-        //public List<Case> Get() =>
-        //    _case.Find(book => true).ToList();
-
+        public Tenant Get() =>
+            _tenant.Find<Tenant>(book => book.Tenantname == _tenantid).FirstOrDefault();
+     
         public Tenant Get(string id)
         {
             try { return _tenant.Find<Tenant>(book => book._id == id).FirstOrDefault(); } catch { throw; };

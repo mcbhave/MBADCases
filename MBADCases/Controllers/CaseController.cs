@@ -131,7 +131,7 @@ namespace MBADCases.Controllers
                 }
                 
             }
-            catch (Exception ex)
+            catch  
             {
                 throw;
             }
@@ -142,13 +142,16 @@ namespace MBADCases.Controllers
         public IActionResult Post(string id,Case ocase)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+
             string sj = ocase.Fields.ToJson();
+            ocase.Updateuser = usrid;
             //string id = ocase._id;
             ocase._id = id;
             try
             {
-                _caseservice.Gettenant(usrid);
+                _caseservice.Gettenant(tenantid);
 
                 _caseservice.Update(id, ocase);
                   oms = _caseservice.SetMessage(ICallerType.CASE, id, sj, "POST", "UPDATE", "Case update", usrid, null);
@@ -168,17 +171,20 @@ namespace MBADCases.Controllers
         public IActionResult Put(string CaseType, Case ocase)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+
             string sj = ocase.Fields.ToJson();
             string id = ocase._id;
-            string createuserid = ocase.Createuser;
+            string createuserid = usrid;
             try
             {
-                _caseservice.Gettenant(usrid);
-
+                _caseservice.Gettenant(tenantid);
+                ocase.Createuser = createuserid;
 
                 if (ocase.Casetype != CaseType) { ocase.Casetype = CaseType; }
                 if (ocase.Updateuser == null) { ocase.Updateuser = createuserid; }
+                if (ocase.Createuser == null) { ocase.Createuser = createuserid; }
                 if (ocase.Createdate == null) { ocase.Createdate = DateTime.UtcNow.ToString(); }
                 if (ocase.Updatedate == null) { ocase.Updatedate = DateTime.UtcNow.ToString(); }
 
