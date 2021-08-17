@@ -2,15 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using MBADCases.Authentication;
 using MBADCases.Models;
-using System.Net.Http;
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
+using Microsoft.AspNetCore.Http;
 namespace MBADCases.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
+    [Route("v{version:apiVersion}/[controller]")]
+    [BasicAuthWix("wix")]
     public class provisionController : ControllerBase
     {
         // GET: api/<provisionController>

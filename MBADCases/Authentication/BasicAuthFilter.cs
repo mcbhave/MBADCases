@@ -51,7 +51,7 @@ namespace MBADCases.Authentication
                 string srapidsecretkey = context.HttpContext.Request.Headers["X-RapidAPI-Proxy-Secret"];
                              
                 omess.Callertype = "Headers";
-                omess.Messagecode = "Init";
+                omess.Messagecode = "yardillo";
                 string sheaders=   Newtonsoft.Json.JsonConvert.SerializeObject(context.HttpContext.Request.Headers);
                 omess.MessageDesc = sheaders;
                 _messagemaster.InsertOneAsync(omess);

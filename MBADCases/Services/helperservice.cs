@@ -83,6 +83,22 @@ namespace MBADCases.Services
             }
             catch { throw; };
         }
+        public static void LogWixMessages(string method,string mess)
+        {
+            MongoClient _client;
+            IMongoDatabase MBADDatabase;
+            IMongoCollection<Message> _messagemaster;
+            Message omess = new Message();
+            _client = new MongoClient("mongodb://yardilloadmin:1pkGpqdqHV42AvOD@cluster0-shard-00-00.tj6lt.mongodb.net:27017,cluster0-shard-00-01.tj6lt.mongodb.net:27017,cluster0-shard-00-02.tj6lt.mongodb.net:27017/yardillo_dev?ssl=true&replicaSet=atlas-d5jcxa-shard-0&authSource=admin&retryWrites=true&w=majority");
+            MBADDatabase = _client.GetDatabase("YARDILLO");
+            _messagemaster = MBADDatabase.GetCollection<Message>("WIXlogins");
+
+            omess.Callertype = method;
+            omess.Messagecode = "wix";
+           
+            omess.MessageDesc = mess;
+            _messagemaster.InsertOneAsync(omess);
+        }
         private static string GetVaultSecret(string stringtoreplace,string tenantid, MongoClient Client, IMongoDatabase MBADDatabase, ICasesDatabaseSettings settings)
         {
             try { 

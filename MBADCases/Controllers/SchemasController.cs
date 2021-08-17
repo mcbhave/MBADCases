@@ -1,14 +1,17 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using MBADCases.Authentication;
 using MBADCases.Models;
+using MBADCases.Services;
 namespace MBADCases.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
+    [Route("v{version:apiVersion}/[controller]")]
+    [BasicAuthWix("wix")]
     public class SchemasController : ControllerBase
     {
         [Route("")]
@@ -16,6 +19,7 @@ namespace MBADCases.Controllers
         [HttpPost]
         public string Index()
         {
+            helperservice.LogWixMessages("Index", "");
 
             //List<WixDB.Schema> lsch = new List<WixDB.Schema>();
             //WixDB.Schema osch = new WixDB.Schema
@@ -36,16 +40,66 @@ namespace MBADCases.Controllers
         [Route("find/{id?}")]
         [HttpPost]
         public IActionResult find(WixDB.find id)
-        {           
-           var lsch =   GetAllSchemasfromDB();
-            List<WixDB.Schema> filteredlist = new List<WixDB.Schema>();
-            if (lsch != null)
-            {
-                //filteredlist=  lsch.Where(x => id.schemaIds.Contains(x.Id.ToLower())).ToList<WixDB.Schema>();
-                filteredlist = lsch.Where(x => id.schemaIds.Contains(x.Id)).ToList<WixDB.Schema>();
-            }
-            WixDB.DBSchemas osc = new WixDB.DBSchemas { Schemas = filteredlist };
+        {
+            helperservice.LogWixMessages("find", Newtonsoft.Json.JsonConvert.SerializeObject(id));
 
+
+            List<WixDB.Schema> lsch = new List<WixDB.Schema>();
+
+            IDictionary<string, FieldValue> ofields = new Dictionary<string, FieldValue>();
+            ofields.Add(new KeyValuePair<string, FieldValue>("_id",
+                       new FieldValue()
+                       {
+                           DisplayName = "_id",
+                           QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                           Type = "text"
+                       })
+                );
+            ofields.Add(new KeyValuePair<string, FieldValue>("_owner",
+                      new FieldValue()
+                      {
+                          DisplayName = "_owner",
+                          QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                          Type = "text"
+                      })
+               );
+            ofields.Add(new KeyValuePair<string, FieldValue>("tenantname",
+                    new FieldValue()
+                    {
+                        DisplayName = "Tenant Name",
+                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                        Type = "text"
+                    })
+             );
+            ofields.Add(new KeyValuePair<string, FieldValue>("tenantdesc",
+                    new FieldValue()
+                    {
+                        DisplayName = "Tenant Description",
+                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                        Type = "text"
+                    })
+             );
+             
+         
+            WixDB.Schema osch = new WixDB.Schema
+            {
+                DisplayName = "tenants",
+                Id = "tenants",
+                AllowedOperations = new string[] { "get", "find", "count", "update", "insert", "remove" },
+                MaxPageSize = 50,
+                ttl = 3600,
+                Fields = ofields
+            };
+            lsch.Add(osch);
+
+             
+
+
+            WixDB.DBSchemas osc = new WixDB.DBSchemas { Schemas = lsch };
+
+
+             
+            helperservice.LogWixMessages("find_response", Newtonsoft.Json.JsonConvert.SerializeObject(osc));
             return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, osc);
         }
 
@@ -54,16 +108,18 @@ namespace MBADCases.Controllers
         [HttpPost]
         public IActionResult list(WixDB.find id)
         {
+            helperservice.LogWixMessages("list", Newtonsoft.Json.JsonConvert.SerializeObject(id));
+
             List<WixDB.Schema> lsch = new List<WixDB.Schema>();
 
             WixDB.Schema osch = GetSchema("tenants", "Tenants", 50, 3600);
             lsch.Add(osch);
 
-            osch = GetSchema("casetypes", "Case Types", 50, 3600);
-            lsch.Add(osch);
+            //osch = GetSchema("casetypes", "Case Types", 50, 3600);
+            //lsch.Add(osch);
 
-            osch = GetSchema("casetypefields", "Case Type Fields", 50, 3600);
-            lsch.Add(osch);
+            //osch = GetSchema("casetypefields", "Case Type Fields", 50, 3600);
+            //lsch.Add(osch);
             string sjson = Newtonsoft.Json.JsonConvert.SerializeObject(lsch);
 
 

@@ -1,17 +1,20 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using MBADCases.Authentication;
 using MBADCases.Models;
+using MBADCases.Services;
 using static MBADCases.Models.WixDB;
-using Newtonsoft.Json.Linq;
 
 namespace MBADCases.Controllers
 {
-    [Route("api/data")]
+    [Route("data")]
     [ApiController]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
+    [Route("v{version:apiVersion}/data")]
+    [BasicAuthWix("wix")]
     public class WixdataController : ControllerBase
     {
         [Route("insert")]
@@ -19,6 +22,7 @@ namespace MBADCases.Controllers
         [HttpPost]
         public IActionResult data(object  oid)
         {
+            helperservice.LogWixMessages("data", oid.ToString());
             WixDB.data id = Newtonsoft.Json.JsonConvert.DeserializeObject<WixDB.data>(oid.ToString());
 
             string js = Newtonsoft.Json.JsonConvert.SerializeObject(id.item);
@@ -70,6 +74,7 @@ namespace MBADCases.Controllers
         [HttpPost]
         public IActionResult getitem(object  sid)
         {
+            helperservice.LogWixMessages("getitem", sid.ToString());
             WixDB.data id = Newtonsoft.Json.JsonConvert.DeserializeObject<WixDB.data>(sid.ToString());
 
             string js = Newtonsoft.Json.JsonConvert.SerializeObject(id.item);
@@ -110,7 +115,7 @@ namespace MBADCases.Controllers
         [HttpPost]
         public IActionResult finditem(WixDB.data id)
         {
-
+            helperservice.LogWixMessages("finditem", Newtonsoft.Json.JsonConvert.SerializeObject(id));
             switch (id.collectionName.ToLower())
             {
                 case "tenants":
@@ -165,6 +170,7 @@ namespace MBADCases.Controllers
         [HttpPost]
         public IActionResult updateitem(object id)
         {
+            helperservice.LogWixMessages("updateitem", Newtonsoft.Json.JsonConvert.SerializeObject(id));
             DataItem<item> oi = new DataItem<item>();
             WixDB.item oitem = new WixDB.item();// { _id = Guid.NewGuid().ToString(), _owner = Guid.NewGuid().ToString(), model = "Camry" };
            
@@ -179,6 +185,7 @@ namespace MBADCases.Controllers
         [HttpPost]
         public IActionResult removeitem(object id)
         {
+            helperservice.LogWixMessages("removeitem", Newtonsoft.Json.JsonConvert.SerializeObject(id));
             DataItem<item> oi = new DataItem<item>();
             WixDB.item oitem = new WixDB.item();// { _id = Guid.NewGuid().ToString(), _owner = Guid.NewGuid().ToString(), make = "Toyota", model = "Camry", year = 2018, date_added = DateTime.Now.ToString("MM-DD-YYYY HH:mm:ss") };
             oi.item = oitem;
@@ -192,6 +199,7 @@ namespace MBADCases.Controllers
         [HttpPost]
         public IActionResult countitem(object id)
         {
+            helperservice.LogWixMessages("countitem", Newtonsoft.Json.JsonConvert.SerializeObject(id));
             DataCount ocount = new DataCount();
             ocount.totalCount = 50;
           
