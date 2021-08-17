@@ -26,10 +26,11 @@ namespace MBADCases.Controllers
         public IActionResult Get(string id)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _adapterservice.Gettenant(usrid);
+                _adapterservice.Gettenant(tenantid);
 
                 Adapter ocase = _adapterservice.Get(id);
                 oms = _adapterservice.SetMessage(id, id, "GET", "200", "Case type Search", usrid, null);
@@ -62,10 +63,11 @@ namespace MBADCases.Controllers
         public IActionResult GetByName(string name)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _adapterservice.Gettenant(usrid);
+                _adapterservice.Gettenant(tenantid);
 
                 Adapter ocase = _adapterservice.GetByName(name);
                
@@ -100,12 +102,13 @@ namespace MBADCases.Controllers
         public IActionResult Post(string id, Adapter adapter)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             //string id = ocase._id;
             adapter._id = id;
             try
             {
-                _adapterservice.Gettenant(usrid);
+                _adapterservice.Gettenant(tenantid);
                 if (adapter.Name == null || adapter.Name == "")
                 {
                     adapter.Name = "Adapter_" + helperservice.RandomString(5, false);
@@ -127,11 +130,12 @@ namespace MBADCases.Controllers
             string sj = adapter.ToJson();
             
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
                 Adapter oretcase;
-                _adapterservice.Gettenant(usrid);
+                _adapterservice.Gettenant(tenantid);
                 if(adapter.Name==null || adapter.Name == "")
                 {
                     adapter.Name="Adapter_" + helperservice.RandomString(5, false);

@@ -23,7 +23,7 @@ namespace MBADCases.Services
             IMongoCollection<Tenant> _tenant = MBADDatabase.GetCollection<Tenant>("Tenants");
             try
             {
-                Tenant oten = _tenant.Find<Tenant>(book => book.Tenantname == tenantid).FirstOrDefault();
+                Tenant oten = _tenant.Find<Tenant>(book => book.Tenantname.ToUpper() == tenantid.ToUpper()).FirstOrDefault();
                 if (oten == null)
                 {
                     oten = new Tenant();
@@ -75,7 +75,7 @@ namespace MBADCases.Services
                     }
                     
                 }
-                IMongoDatabase TenantDatabase = Client.GetDatabase(oten._id); ;
+                IMongoDatabase TenantDatabase = Client.GetDatabase(oten.Tenantname); ;
 
                 SetMBADMessage(settings, MBADDatabase, ICallerType.TENANT, oten._id, tenantid, "TENANT", "Success", "Tenant login", tenantid, null);
 

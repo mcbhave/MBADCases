@@ -24,10 +24,11 @@ namespace MBADCases.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _tenantservice.Gettenant(usrid);
+                _tenantservice.Gettenant(tenantid);
                 Tenant ocase = _tenantservice.Get();
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
             }
@@ -39,10 +40,11 @@ namespace MBADCases.Controllers
         public IActionResult Get(string id)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _tenantservice.Gettenant(usrid);
+                _tenantservice.Gettenant(tenantid);
 
                 Tenant ocase = _tenantservice.Get(id);
                 oms = _tenantservice.SetMessage(id, id, "GET", "200", "Case type Search", usrid, null);
@@ -76,12 +78,13 @@ namespace MBADCases.Controllers
         public IActionResult Post(string id, Tenant tenant)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             //string id = ocase._id;
             //ocasetype._id = id;
             try
             {
-                _tenantservice.Gettenant(usrid);
+                _tenantservice.Gettenant(tenantid);
 
                 _tenantservice.Update(id, tenant);
                 oms = _tenantservice.SetMessage(id, null, "POST", "UPDATE", "Case type update", usrid, null);
@@ -100,19 +103,28 @@ namespace MBADCases.Controllers
         public IActionResult Put(Tenant tenant)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
-            string createuserid = tenant.Createuser;
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
+           
+
             try
             {
-                _tenantservice.Gettenant(usrid);
+                               
+                _tenantservice.Gettenant(tenantid);
+                //do not allow to set a database while tenant creation
+                tenant.Dbconnection = "";
+                //check if tenant with user name exists
+                tenant.Createuser = usrid;
+                tenant.Createdate = DateTime.UtcNow.ToString();
+              
                 var oretcase = _tenantservice.Create(tenant);
-                oms = _tenantservice.SetMessage(oretcase._id, "", "PUT", "200", "Tenant insert", createuserid, null);
+                oms = _tenantservice.SetMessage(oretcase._id, "", "PUT", "200", "Tenant insert", usrid, null);
 
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, tenant);
             }
             catch (Exception ex)
             {
-                oms = _tenantservice.SetMessage(null, "", "PUT", "", "Tenant insert", createuserid, ex);
+                oms = _tenantservice.SetMessage(null, "", "PUT", "", "Tenant insert", usrid, ex);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, tenant);
 
             }
@@ -125,11 +137,13 @@ namespace MBADCases.Controllers
         {
             Message oms;
             Case ocase = new Case();
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             //string sj = ocase.Caseattributes.ToJson();
             // string id = ocase._id;
             try
             {
+                _tenantservice.Gettenant(tenantid);
                 _tenantservice.Remove(id);
                 oms = _tenantservice.SetMessage( id, id, "DELETE", "200", "Case delete", usrid, null);
             

@@ -26,11 +26,12 @@ namespace MBADCases.Authentication
         [HttpGet("{filter}", Name = "SearchCases")]
         public IActionResult Get(string filter)
         {
-             
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _caseservice.Gettenant(usrid);
+                _caseservice.Gettenant(tenantid);
 
                 List<BsonDocument> ocase = _caseservice.Searchcases(filter);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);

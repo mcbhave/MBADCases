@@ -34,6 +34,14 @@ namespace MBADCases.Authentication
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
+            MongoClient _client;
+            IMongoDatabase MBADDatabase;
+            IMongoCollection<Message> _messagemaster;
+            Message omess = new Message();
+            _client = new MongoClient("mongodb://yardilloadmin:1pkGpqdqHV42AvOD@cluster0-shard-00-00.tj6lt.mongodb.net:27017,cluster0-shard-00-01.tj6lt.mongodb.net:27017,cluster0-shard-00-02.tj6lt.mongodb.net:27017/yardillo_dev?ssl=true&replicaSet=atlas-d5jcxa-shard-0&authSource=admin&retryWrites=true&w=majority");
+            MBADDatabase = _client.GetDatabase("YARDILLO");
+            _messagemaster = MBADDatabase.GetCollection<Message>("Logins");
+
             try
             {
                 bool allpass = true ;
@@ -41,14 +49,7 @@ namespace MBADCases.Authentication
                 //if (srapidsecretkey!="1f863a60-f3b6-11eb-bc3e-c3f329db9ee7"|| srapidsecretkey!="5f188e6b3emsh22dc968fbdea35fp1d0668jsn84272bcf0086")
                 //{ allpass = false; }
                 string srapidsecretkey = context.HttpContext.Request.Headers["X-RapidAPI-Proxy-Secret"];
-
-                MongoClient _client;
-                   IMongoDatabase MBADDatabase;
-                     _client = new MongoClient("mongodb://yardilloadmin:1pkGpqdqHV42AvOD@cluster0-shard-00-00.tj6lt.mongodb.net:27017,cluster0-shard-00-01.tj6lt.mongodb.net:27017,cluster0-shard-00-02.tj6lt.mongodb.net:27017/yardillo_dev?ssl=true&replicaSet=atlas-d5jcxa-shard-0&authSource=admin&retryWrites=true&w=majority");
-                    MBADDatabase = _client.GetDatabase("YARDILLO_DEV");
-                IMongoCollection<Message> _messagemaster;
-                _messagemaster = MBADDatabase.GetCollection<Message>("Logins");
-                Message omess = new Message();
+                             
                 omess.Callertype = "Headers";
                 omess.Messagecode = "Init";
                 string sheaders=   Newtonsoft.Json.JsonConvert.SerializeObject(context.HttpContext.Request.Headers);
@@ -58,7 +59,6 @@ namespace MBADCases.Authentication
                 if (srapidsecretkey != "1f863a60-f3b6-11eb-bc3e-c3f329db9ee7" && srapidsecretkey != "6acc1280-fde1-11eb-b480-3f057f12dc26")
                 { allpass = false; }
                
-
                 if (allpass) 
                 { 
                     string xrapidhost = context.HttpContext.Request.Headers["x-rapidapi-host"];
@@ -66,37 +66,128 @@ namespace MBADCases.Authentication
                     { allpass = false; }
                      
                 }
+                string rapiduserid="";
+                IMongoCollection<TenantUser> _tenantusercoll;
+                _tenantusercoll = MBADDatabase.GetCollection<TenantUser>("TenantUsers");
                
                 if (allpass)
                 {
-                    string srapidapikey = context.HttpContext.Request.Headers["y-auth-tenantname"];
-                  
-                    if (srapidapikey == null || srapidapikey == "") { 
-                      
-                        srapidapikey = context.HttpContext.Request.Headers["X-RapidAPI-User"];
-                        if (srapidapikey == null || srapidapikey == "")
-                        {
-                            allpass = false;
-                        }
-                        else
-                        {
-                            context.HttpContext.Session.SetString("mbadtanent", srapidapikey);
-                        }
-
+                    rapiduserid = context.HttpContext.Request.Headers["X-RapidAPI-User"];
+                    if (rapiduserid == null || rapiduserid == "")
+                    {
+                        allpass = false;
                     }
                     else
                     {
-                        context.HttpContext.Session.SetString("mbadtanent", srapidapikey);
+                        context.HttpContext.Session.SetString("mbaduserid", rapiduserid);
                     }
-                    
-                }
 
-               string suserID = context.HttpContext.Request.Headers["X-RapidAPI-User"];
-                if (suserID != null && suserID != "")
-                {
-                    context.HttpContext.Session.SetString("mbaduserid", suserID);
+                    //try to find users tenants
+                   
+                    if (allpass)
+                    {
+                        string ytenantname = context.HttpContext.Request.Headers["y-auth-tenantname"];
+                        List<TenantUser> ou;
+                        if ((ou = _tenantusercoll.Find<TenantUser>(book => book.Userid.ToUpper() == rapiduserid.ToUpper()).ToList()) != null)
+                        {
+                            if (ou.Count > 1)
+                            {
+                                //multiple present look for y-auth-tenantname
+                                //continue
+                                if (ytenantname != null && ytenantname != "")
+                                {
+                                    TenantUser o = ou.Where(t => t.Tenantname.ToUpper() == ytenantname.ToUpper()).FirstOrDefault();
+                                    if (o != null)
+                                    {
+                                        context.HttpContext.Session.SetString("mbadtanent", o.Tenantname);
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        allpass = false;
+
+                                    }
+                                }
+                                {
+                                    //pick the top one
+                                    context.HttpContext.Session.SetString("mbadtanent", ou[0].Tenantname);
+                                    return;
+                                }
+                             
+                            }
+                            if (ou.Count ==1 )
+                            {
+                                //only one present then default to that
+                                context.HttpContext.Session.SetString("mbadtanent", ou[0].Tenantname);
+                                return;
+                            }
+                            else
+                            {
+                                //continue
+                            }
+                        }
+                        
+                    }
+                
+                    //so far goood, check if tenant name is passed
+                    if (allpass)
+                    {
+
+                        string ytenantname = context.HttpContext.Request.Headers["y-auth-tenantname"];
+                        //get the tenant from user name
+                        if (ytenantname == null || ytenantname == "")
+                        {
+                            //generate one for this user
+                            IMongoCollection<Tenant> _tenantcoll;
+                            _tenantcoll = MBADDatabase.GetCollection<Tenant>("Tenants");
+                            Tenant oten = new Tenant();
+                            oten.Tenantname = rapiduserid + "_" + helperservice.RandomString(7, false); ;
+                            oten.Tenantdesc = rapiduserid;
+                            oten.Createdate = DateTime.UtcNow.ToString();
+                            oten.Createuser = rapiduserid;
+
+                            string snewtenname = rapiduserid.ToUpper();
+                            if (_tenantcoll.Find<Tenant>(book => book.Tenantname.ToUpper() == snewtenname.ToUpper()).FirstOrDefault() != null)
+                            {
+                                snewtenname = rapiduserid + "_" + helperservice.RandomString(7, false);
+                                while (_tenantcoll.Find<Tenant>(book => book.Tenantname.ToUpper() == snewtenname.ToUpper()).FirstOrDefault() != null)
+                                {
+                                    //name must be unique assing a random string
+                                    snewtenname = rapiduserid + "_" + helperservice.RandomString(7, false);
+                                }
+                                oten.Tenantname = snewtenname;
+                            };
+
+                            _tenantcoll.InsertOne(oten);
+                            if (oten._id != "")
+                            {
+                                context.HttpContext.Session.SetString("mbadtanent", oten.Tenantname.ToUpper());
+                                //and register as tenantuser
+                                TenantUser ousr = new TenantUser();
+                                ousr.Userid = rapiduserid;
+                                ousr.Tenantname = oten.Tenantname;
+                                ousr.Createdate = DateTime.UtcNow.ToString();
+                                ousr.Createuserid = rapiduserid;
+                                _tenantusercoll.InsertOne(ousr);
+                                if (oten._id != "")
+                                {
+                                    return;
+                                }
+
+                            }
+                            else
+                            {
+                                omess.MessageDesc = "Unabel to create tenant for userid = " + rapiduserid;
+                                _messagemaster.InsertOneAsync(omess);
+                                allpass = false;
+                            }                         
+                        }
+                        else
+                        {
+                            allpass=false;
+                        }
+                    }
                 }
-                 
 
                 if (allpass) { return; }
 
@@ -130,8 +221,10 @@ namespace MBADCases.Authentication
              
                 ReturnUnauthorizedResult(context);
             }
-            catch (FormatException)
+            catch (FormatException e)
             {
+                omess.MessageDesc = "Unabel to validate user" + e.ToString();
+                _messagemaster.InsertOneAsync(omess);
                 ReturnUnauthorizedResult(context);
             }
         }

@@ -41,10 +41,11 @@ namespace MBADCases.Controllers
         public IActionResult Get(string id)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _caseservice.Gettenant(usrid);
+                _caseservice.Gettenant(tenantid);
 
                 Case ocase = _caseservice.Get(id);
                 
@@ -77,10 +78,11 @@ namespace MBADCases.Controllers
         public IActionResult Get2(string id)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _caseservice.Gettenant(usrid);
+                _caseservice.Gettenant(tenantid);
 
                 Case ocase = _caseservice.Get(id);
                 oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "GET", "200", "Case Searched", usrid, null);
@@ -104,10 +106,11 @@ namespace MBADCases.Controllers
         public IActionResult Search(string filter)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _caseservice.Gettenant(usrid);
+                _caseservice.Gettenant(tenantid);
 
                 List<BsonDocument> ocase = _caseservice.Searchcases(filter);
                List<Case> oretcase=new List<Case>();
@@ -209,12 +212,14 @@ namespace MBADCases.Controllers
         {
             Message oms;
             Case ocase = new Case();
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             //string sj = ocase.Caseattributes.ToJson();
-           // string id = ocase._id;
+            // string id = ocase._id;
             try
             {
-                _caseservice.Gettenant(usrid);
+                _caseservice.Gettenant(tenantid);
 
                 _caseservice.Remove(id);
                 oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "DELETE", "200", "Case delete", usrid, null);

@@ -57,6 +57,9 @@ namespace MBADCases.Services
         {
             try
             {
+                //check if unique
+                CaseType c = _casetypecollection.Find(c => c.Casetype.ToUpper() == CaseTypeName.ToUpper()).FirstOrDefault();
+                if (c != null) { ocasetype = c; return ocasetype; }
                 if (ocasetype.Casetype != CaseTypeName) { ocasetype.Casetype = CaseTypeName; }
                 //if (ocasetype.Updateuser == null) { ocasetype.Updateuser = createuserid; }
                 if (ocasetype.Createdate == null) { ocasetype.Createdate = DateTime.UtcNow.ToString(); }

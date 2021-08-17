@@ -26,10 +26,11 @@ namespace MBADCases.Controllers
         public IActionResult Get(string id)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _casetypeservice.Gettenant(usrid);
+                _casetypeservice.Gettenant(tenantid);
 
                 CaseType ocase = _casetypeservice.Get(id);
                 oms = _casetypeservice.SetMessage(id, id, "GET", "200", "Case type Search", usrid, null);
@@ -61,10 +62,11 @@ namespace MBADCases.Controllers
         public IActionResult GetByName(string name)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _casetypeservice.Gettenant(usrid);
+                _casetypeservice.Gettenant(tenantid);
 
                 CaseType ocase = _casetypeservice.GetByName(name);
                
@@ -96,12 +98,13 @@ namespace MBADCases.Controllers
         public IActionResult Post(string id, CaseType ocasetype)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             //string id = ocase._id;
             ocasetype._id = id;
             try
             {
-                _casetypeservice.Gettenant(usrid);
+                _casetypeservice.Gettenant(tenantid);
 
                 _casetypeservice.Update(id, ocasetype);
                 oms = _casetypeservice.SetMessage( id, null, "POST", "UPDATE", "Case type update", usrid, null);
@@ -118,11 +121,14 @@ namespace MBADCases.Controllers
         public IActionResult Put(string CaseTypeName,CaseType ocasetype)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             string createuserid = ocasetype.Createuser;
             try
             {
-                _casetypeservice.Gettenant(usrid);
+                _casetypeservice.Gettenant(tenantid);
+               
+              
                 var oretcase = _casetypeservice.Create(CaseTypeName,ocasetype);
                 oms = _casetypeservice.SetMessage(oretcase._id, CaseTypeName, "PUT", "200", "Case type insert", createuserid, null);
 

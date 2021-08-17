@@ -25,10 +25,11 @@ namespace MBADCases.Controllers
         public IActionResult Get(string id)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _vaultservice.Gettenant(usrid);
+                _vaultservice.Gettenant(tenantid);
 
                 VaultResponse ovaultresp = _vaultservice.Get(id);
                 oms = _vaultservice.SetMessage(id, id, "GET", "200", "Case type Search", usrid, null);
@@ -60,10 +61,11 @@ namespace MBADCases.Controllers
         public IActionResult GetByName(string name)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _vaultservice.Gettenant(usrid);
+                _vaultservice.Gettenant(tenantid);
 
                 if (name.ToLower() == "all")
                 {
@@ -108,7 +110,8 @@ namespace MBADCases.Controllers
         public IActionResult Post(string id, Vault ovault)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             //string id = ocase._id;
             ovault._id = id;
             try
@@ -121,7 +124,7 @@ namespace MBADCases.Controllers
                 }
 
                 ovault.Macroname = "@VAULT|" + ovault.Name + "@";
-                _vaultservice.Gettenant(usrid);
+                _vaultservice.Gettenant(tenantid);
 
                 _vaultservice.Update(id, ovault);
                 oms = _vaultservice.SetMessage(id, null, "POST", "UPDATE", "Case type update", usrid, null);
@@ -140,11 +143,12 @@ namespace MBADCases.Controllers
             string sj = ovault.ToJson();
 
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
                 VaultResponse oretcase;
-                _vaultservice.Gettenant(usrid);
+                _vaultservice.Gettenant(tenantid);
                 if (ovault.Name == null || ovault.Name == "")
                 {
                     ovault.Name = "Vault_" + helperservice.RandomString(5, false);
@@ -176,11 +180,12 @@ namespace MBADCases.Controllers
         [HttpGet("/all", Name = "GetVaultbyfilter")]
         public IActionResult Search(string filter)
         {
-            
-            var usrid = HttpContext.Session.GetString("mbadtanent");
+
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
             try
             {
-                _vaultservice.Gettenant(usrid);
+                _vaultservice.Gettenant(tenantid);
 
                 List<Vault> ocase = _vaultservice.Searchvault(filter);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
@@ -195,13 +200,14 @@ namespace MBADCases.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(string id)
         {
-          
-             
-            var usrid = HttpContext.Session.GetString("mbadtanent");
-           
+
+
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
+
             try
             {
-                _vaultservice.Gettenant(usrid);
+                _vaultservice.Gettenant(tenantid);
 
                 _vaultservice.Remove(id);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, "");
