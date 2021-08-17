@@ -36,8 +36,8 @@ namespace MBADCases.Services
             }
             catch { throw; };
         }
-        public Tenant Get() =>
-            _tenant.Find<Tenant>(book => book.Tenantname == _tenantid).FirstOrDefault();
+        public List<Tenant> Get() =>
+            _tenant.Find<Tenant>(book => book.Tenantname == _tenantid).ToList();
      
         public Tenant Get(string id)
         {

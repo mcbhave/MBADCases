@@ -4,6 +4,8 @@ using MBADCases.Models;
 using MBADCases.Authentication;
 using System;
 using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
+
 namespace MBADCases.Controllers
 {
     [ApiController]
@@ -29,7 +31,7 @@ namespace MBADCases.Controllers
             try
             {
                 _tenantservice.Gettenant(tenantid);
-                Tenant ocase = _tenantservice.Get();
+                List<Tenant> ocase = _tenantservice.Get();
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
             }
             catch { throw; }
