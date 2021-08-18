@@ -44,6 +44,10 @@ namespace MBADCases.Models
         }
         public partial class RequestContext
         {
+            public RequestContext(){
+                Settings = new Settings();
+            }
+
             [JsonProperty("settings")]
             public Settings Settings { get; set; }
 
@@ -61,12 +65,20 @@ namespace MBADCases.Models
         }
         public class provision
         {
+            public provision()
+            {
+                RequestContext = new RequestContext();
+            }
             public RequestContext RequestContext { get; set; }
 
         }
 
         public class  data 
         {
+            public data()
+            {
+                RequestContext = new RequestContext();
+            }
             public RequestContext RequestContext { get; set; }
             public string collectionName { get; set; }
            
@@ -148,13 +160,20 @@ public class DataItem<T>
         }
         public class find
         {
+            public find()
+            {
+                RequestContext = new RequestContext();
+            }
             public RequestContext RequestContext { get; set; }
             public string[] schemaIds { get; set; }
         }
         public class Settings
         {
-            [JsonProperty("Authorization")]
+            [JsonProperty("authorization")]
             public string Authorization { get; set; }
+            [JsonProperty("yauthtenantname")]
+            public string Yauthtenantname { get; set; }
+            
         }
     }
 

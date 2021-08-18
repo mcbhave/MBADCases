@@ -5,6 +5,8 @@ using System.Linq;
 using MBADCases.Authentication;
 using MBADCases.Models;
 using MBADCases.Services;
+using Microsoft.AspNetCore.Http;
+
 namespace MBADCases.Controllers
 {
     [ApiController]
@@ -39,6 +41,7 @@ namespace MBADCases.Controllers
         [Route("find")]
         [Route("find/{id?}")]
         [HttpPost]
+      
         public IActionResult find(WixDB.find id)
         {
             helperservice.LogWixMessages("find", Newtonsoft.Json.JsonConvert.SerializeObject(id));
@@ -108,12 +111,18 @@ namespace MBADCases.Controllers
         [HttpPost]
         public IActionResult list(WixDB.find id)
         {
+
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
+
             helperservice.LogWixMessages("list", Newtonsoft.Json.JsonConvert.SerializeObject(id));
 
             List<WixDB.Schema> lsch = new List<WixDB.Schema>();
 
             WixDB.Schema osch = GetSchema("tenants", "Tenants", 50, 3600);
             lsch.Add(osch);
+
+
 
             //osch = GetSchema("casetypes", "Case Types", 50, 3600);
             //lsch.Add(osch);

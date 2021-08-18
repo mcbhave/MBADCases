@@ -15,8 +15,9 @@ namespace MBADCases.Models
         public string Createuser { get; set; }
 
         public string Dbconnection { get; set; }
-
+        public string Rapidapikey { get; set; }
         public MessageResponse Message { get; set; }
+               
 
     }
 }

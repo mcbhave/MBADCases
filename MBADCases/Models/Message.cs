@@ -17,6 +17,7 @@ namespace MBADCases.Models
         public string Messageype { get; set; }
         public string Messagecode { get; set; }
         public string Callerrequest { get; set; }
+        public string Headerrequest { get; set; }
         public string Callerrequesttype { get; set; }
         public string MessageDesc{ get; set; }
         public string Userid { get; set; }

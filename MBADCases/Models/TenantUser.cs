@@ -14,5 +14,11 @@ namespace MBADCases.Models
         public string Createdate { get; set; }
 
         public string Createuserid { get; set; }
+
+        public string Source { get; set; }
+
+        public string Role { get; set; }
+
+        public string Type { get; set; }
     }
 }
