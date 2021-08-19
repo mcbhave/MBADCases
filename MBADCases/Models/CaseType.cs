@@ -22,7 +22,7 @@ namespace MBADCases.Models
         public string Updatedate { get; set; }
         public string Defaultactivityid { get; set; }
         public List<Activity> Activities { get; set; }
-
+        public List<Casetypefield> Fields { get; set; }
         public MessageResponse Message { get; set; }
     }
     public class Casetypefield

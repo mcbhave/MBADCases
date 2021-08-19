@@ -117,6 +117,45 @@ namespace MBADCases.Controllers
             }
         }
 
+        [HttpGet("search/{filter}", Name = "GetCasetypesbyfilter")]
+        public IActionResult Search(string filter)
+        {
+            Message oms;
+            var usrid = HttpContext.Session.GetString("mbaduserid");
+            var tenantid = HttpContext.Session.GetString("mbadtanent");
+            try
+            {
+                _casetypeservice.Gettenant(tenantid);
+
+                List<CaseType> ocase = _casetypeservice.Searchcases(filter);
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
+                //List<Case> oretcase = new List<Case>();
+                //if (ocase != null)
+                //{
+
+                //    foreach (BsonDocument b in ocase)
+                //    {
+                //        Case ocas = BsonSerializer.Deserialize<Case>(b.ToJson());
+                //        oretcase.Add(ocas);
+                //    }
+
+                //    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oretcase);
+                //}
+                //else
+                //{
+                //    oms = _caseservice.SetMessage(ICallerType.CASE_SEARCH, "", "", "GET", "404", "Case Search", usrid, null);
+                //    oretcase = new List<Case>();
+
+                //    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, ocase);
+                //}
+
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         [HttpPut("{CaseTypeName}")]
         public IActionResult Put(string CaseTypeName,CaseType ocasetype)
         {

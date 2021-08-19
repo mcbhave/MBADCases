@@ -45,16 +45,17 @@ namespace MBADCases.Authentication
             try
             {
                 bool allpass = true ;
-                //string srapidsecretkey = context.HttpContext.Request.Headers["X-RapidAPI-Proxy-Secret"];
-                //if (srapidsecretkey!="1f863a60-f3b6-11eb-bc3e-c3f329db9ee7"|| srapidsecretkey!="5f188e6b3emsh22dc968fbdea35fp1d0668jsn84272bcf0086")
-                //{ allpass = false; }
+                
                 string srapidsecretkey = context.HttpContext.Request.Headers["X-RapidAPI-Proxy-Secret"];
-                             
+                string rapiduserid = context.HttpContext.Request.Headers["X-RapidAPI-User"];
+                 
+
                 omess.Callertype = "Headers";
                 omess.Messagecode = "yardillo";
                 string sheaders=   Newtonsoft.Json.JsonConvert.SerializeObject(context.HttpContext.Request.Headers);
-                omess.MessageDesc = sheaders;
-                _messagemaster.InsertOneAsync(omess);
+                omess.Headerrequest = sheaders;
+                omess.Userid = rapiduserid;
+                
 
                 if (srapidsecretkey != "1f863a60-f3b6-11eb-bc3e-c3f329db9ee7" && srapidsecretkey != "6acc1280-fde1-11eb-b480-3f057f12dc26")
                 { allpass = false; }
@@ -62,17 +63,18 @@ namespace MBADCases.Authentication
                 if (allpass) 
                 { 
                     string xrapidhost = context.HttpContext.Request.Headers["x-rapidapi-host"];
+                    omess.Callerid = xrapidhost;
                     if (xrapidhost != "mbad.p.rapidapi.com" && xrapidhost != "yardillo.p.rapidapi.com")
                     { allpass = false; }
                      
                 }
-                string rapiduserid="";
+              
                 IMongoCollection<TenantUser> _tenantusercoll;
                 _tenantusercoll = MBADDatabase.GetCollection<TenantUser>("TenantUsers");
                
                 if (allpass)
                 {
-                    rapiduserid = context.HttpContext.Request.Headers["X-RapidAPI-User"];
+                   
                     if (rapiduserid == null || rapiduserid == "")
                     {
                         allpass = false;
@@ -100,6 +102,7 @@ namespace MBADCases.Authentication
                                     if (o != null)
                                     {
                                         context.HttpContext.Session.SetString("mbadtanent", o.Tenantname);
+                                        omess.Tenantid = o.Tenantname;
                                         return;
                                     }
                                     else
@@ -111,6 +114,7 @@ namespace MBADCases.Authentication
                                 {
                                     //pick the top one
                                     context.HttpContext.Session.SetString("mbadtanent", ou[0].Tenantname);
+                                    omess.Tenantid = ou[0].Tenantname;
                                     return;
                                 }
                              
@@ -119,6 +123,7 @@ namespace MBADCases.Authentication
                             {
                                 //only one present then default to that
                                 context.HttpContext.Session.SetString("mbadtanent", ou[0].Tenantname);
+                                omess.Tenantid = ou[0].Tenantname;
                                 return;
                             }
                             else
@@ -224,8 +229,12 @@ namespace MBADCases.Authentication
             catch (FormatException e)
             {
                 omess.MessageDesc = "Unabel to validate user" + e.ToString();
-                _messagemaster.InsertOneAsync(omess);
+               // _messagemaster.InsertOneAsync(omess);
                 ReturnUnauthorizedResult(context);
+            }
+            finally
+            {
+                _messagemaster.InsertOneAsync(omess);
             }
         }
 

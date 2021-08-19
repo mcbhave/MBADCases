@@ -96,7 +96,7 @@ namespace MBADCases.Services
             omess.Callertype = method;
             omess.Messagecode = "wix";
            
-            omess.MessageDesc = mess;
+            omess.Callerrequest = mess;
             _messagemaster.InsertOneAsync(omess);
         }
         private static string GetVaultSecret(string stringtoreplace,string tenantid, MongoClient Client, IMongoDatabase MBADDatabase, ICasesDatabaseSettings settings)
