@@ -34,7 +34,14 @@ namespace MBADCases.Models
         public string message { get; set; }
         public string Value { get; set; }
         public List<Option> Options { get; set; }
-       
+        public int CompareTo(Casetypefield compareSeq)
+        {
+            // A null value means that this object is greater.
+            if (compareSeq == null)
+                return 1;
+            else
+                return this.Seq.CompareTo(compareSeq.Seq);
+        }
     }
     public class SetCasetypefield
     {

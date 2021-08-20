@@ -33,7 +33,7 @@ namespace MBADCases.Authentication
             {
                 _caseservice.Gettenant(tenantid);
 
-                List<BsonDocument> ocase = _caseservice.Searchcases(filter);
+                List<Case> ocase = _caseservice.Searchcases(filter);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 //if (ocase == null)
                 //{

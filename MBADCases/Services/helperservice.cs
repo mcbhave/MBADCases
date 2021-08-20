@@ -676,6 +676,28 @@ namespace MBADCases.Services
 
 
     }
+    public class MyCaseFieldOrder : IComparer<Casefield>
+    {
+        public int Compare(Casefield x, Casefield y)
+        {
+            int ci = x.Seq.CompareTo(y.Seq);
+          
+            return ci;
+        }
+
+
+    }
+    public class MyCaseTypeFieldOrder : IComparer<Casetypefield>
+    {
+        public int Compare(Casetypefield x, Casetypefield y)
+        {
+            int ci = x.Seq.CompareTo(y.Seq);
+
+            return ci;
+        }
+
+
+    }
     public class MyActionOrder : IComparer<Models.Action>
     {
         public int Compare(Models.Action x, Models.Action y)

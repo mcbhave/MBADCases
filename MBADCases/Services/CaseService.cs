@@ -59,7 +59,7 @@ namespace MBADCases.Services
         }
         //public List<Case> Get() =>
         //    _case.Find(book => true).ToList();
-        public List<BsonDocument> Searchcases(string sfilter)
+        public List<Case> Searchcases(string sfilter)
         {
             FilterDefinition<BsonDocument> oFilterDoc  ;
             //FilterDefinitionBuilder<BsonDocument> ofd = new FilterDefinitionBuilder<BsonDocument>();
@@ -121,8 +121,17 @@ namespace MBADCases.Services
 
                 oFilterDoc = ofd.And(clauses);
               colC = _casecollectionlist.Find(oFilterDoc ).ToList();
+                List<Case> oretcase = new List<Case>();
+                if (colC != null)
+                {
 
-                return colC ;
+                    foreach (BsonDocument b in colC)
+                    {
+                        Case ocas = BsonSerializer.Deserialize<Case>(b.ToJson());
+                        oretcase.Add(ocas);
+                    }
+                }
+                    return oretcase;
             }
             catch
             {
@@ -538,7 +547,17 @@ namespace MBADCases.Services
             return oms;
 
         }
+        public void SetMessage(Message oms)
+        {
 
-        
+            
+            MessageService omesssrv = new MessageService(_settings, TenantDatabase, MBADDatabase);
+            oms = omesssrv.Create(oms);
+
+           
+
+        }
+
+
     }
 }

@@ -112,23 +112,17 @@ namespace MBADCases.Controllers
             {
                 _caseservice.Gettenant(tenantid);
 
-                List<BsonDocument> ocase = _caseservice.Searchcases(filter);
-               List<Case> oretcase=new List<Case>();
+                List<Case> ocase = _caseservice.Searchcases(filter);
+               
                 if (ocase != null)
                 {
                  
-                    foreach (BsonDocument b in ocase)
-                    {
-                        Case ocas = BsonSerializer.Deserialize<Case>(b.ToJson());
-                        oretcase.Add(ocas);
-                    }
-                   
-                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oretcase);
+                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 }
                else 
                 {
                     oms = _caseservice.SetMessage(ICallerType.CASE_SEARCH, "", "", "GET", "404", "Case Search", usrid, null);
-                    oretcase = new List<Case>();
+                    ocase = new List<Case>();
                    
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, ocase);
                 }

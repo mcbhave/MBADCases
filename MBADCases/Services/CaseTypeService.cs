@@ -219,6 +219,18 @@ namespace MBADCases.Services
 
         }
 
+        public Message SetMessage(Message oms)
+        {
 
+            MessageService omesssrv = new MessageService(_settings, TenantDatabase, MBADDatabase);
+            oms = omesssrv.Create(oms);
+
+            return oms;
+
+        }
     }
+   
+
+
 }
+ 

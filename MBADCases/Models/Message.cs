@@ -2,11 +2,16 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using System;
 
 namespace MBADCases.Models
 {
     public class Message
     {
+        public Message()
+        {
+            Messagedate = DateTime.UtcNow.ToString();
+        }
 
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
@@ -17,6 +22,7 @@ namespace MBADCases.Models
         public string Messageype { get; set; }
         public string Messagecode { get; set; }
         public string Callerrequest { get; set; }
+        public string Callresponse { get; set; }
         public string Headerrequest { get; set; }
         public string Callerrequesttype { get; set; }
         public string MessageDesc{ get; set; }

@@ -120,7 +120,7 @@ namespace MBADCases.Controllers
         [HttpGet("search/{filter}", Name = "GetCasetypesbyfilter")]
         public IActionResult Search(string filter)
         {
-            Message oms;
+        
             var usrid = HttpContext.Session.GetString("mbaduserid");
             var tenantid = HttpContext.Session.GetString("mbadtanent");
             try

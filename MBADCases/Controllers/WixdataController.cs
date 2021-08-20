@@ -6,6 +6,8 @@ using MBADCases.Authentication;
 using MBADCases.Models;
 using MBADCases.Services;
 using static MBADCases.Models.WixDB;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
 
 namespace MBADCases.Controllers
 {
@@ -17,96 +19,110 @@ namespace MBADCases.Controllers
     [BasicAuthWix("wix")]
     public class WixdataController : ControllerBase
     {
+        private readonly CaseService _cases;
+        public WixdataController(CaseService cases)
+        {
+            _cases = cases;
+        }
         [Route("insert")]
         [Route("insert/{id?}")]
         [HttpPost]
         public IActionResult data(object  oid)
         {
-            helperservice.LogWixMessages("data", oid.ToString());
-            WixDB.data id = Newtonsoft.Json.JsonConvert.DeserializeObject<WixDB.data>(oid.ToString());
-
-            string js = Newtonsoft.Json.JsonConvert.SerializeObject(id.item);
-
-            //return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oi);
-            //FindTenants olistdata = new FindTenants();
-            switch (id.collectionName.ToLower())
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string scasetypes = "";
+            string sresponse = "";
+            try
             {
-                case "tenants":
-                    var oitm =  Newtonsoft.Json.JsonConvert.DeserializeObject<Tenant>(js);
-                    Tenant oten = new Tenant()
-                    {
-                        _id = Guid.NewGuid().ToString(),
-                        Tenantname = oitm.Tenantname,
-                      Tenantdesc=oitm.Tenantdesc ,
-                       _owner=oitm._owner
+                srequest= oid.ToString();
+                 WixDB.data id = Newtonsoft.Json.JsonConvert.DeserializeObject<WixDB.data>(oid.ToString());
+                 string js = Newtonsoft.Json.JsonConvert.SerializeObject(id.item);
+                 var oitm =  Newtonsoft.Json.JsonConvert.DeserializeObject<Case>(js);
+                 DataItem<WixCase> oi = new DataItem<WixCase>();
+               List< DataItem<object>> od = new List<DataItem<object>>();
+                foreach (Case c in _cases.Searchcases("Casetype=" + id.collectionName))
+                {
+                    DataItem<WixCase> o = new DataItem<WixCase>();
+                    o.item._id = c._id;
+                    o.item._owner = c.Createuser;
+                    o.item.casetitle = c.Casetitle;
+                    o.item.casetype = c.Casetype;
+                    o.item.casestatus = c.Casestatus;
+                    o.item.currentactivityid = c.Currentactivityid;
+                    o.item.currentactionid = c.Currentactionid;
+                    o.item.casedescription = c.Casedescription;
+                    o.item.createdate = c.Createdate;
+                    o.item.createuser = c.Createuser;
+                    o.item.updatedate = c.Updatedate;
+                    o.item.updateuser = c.Updateuser;
+                    string oitem=  Newtonsoft.Json.JsonConvert.SerializeObject(o);
+                 
+                    JObject job = JObject.Parse(oitem);
+                    var comparer = new MyCaseFieldOrder();
+                     c.Fields.Sort(comparer);
+                    foreach (Casefield f in c.Fields)
+                    { 
+                        job.Add(f.Fieldid, f.Value);
+                    }
+                    od.Add(job);
+                  }
+                                            
+                sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(od);
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, od);
 
-                    };
-                  Data.TenantData  ot = new Data.TenantData(oitm._id);
-                 List<Tenant> colten =  ot.getTenants();
-                    colten.Add(oten);
-                   string strnetnt= Newtonsoft.Json.JsonConvert.SerializeObject(colten);
-                    string spath = "Data/tenants.json";
-                      System.IO.File.WriteAllText (spath, strnetnt);
-
-                    //MBADCases.Data.TenantData otendata = new Data.TenantData(id.collectionName);
-                    DataItem<Tenant> oi = new DataItem<Tenant>();
-                    oi.item = oten;
-                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oi);
-
-                case "casetypes":
-                    //MBADCases.Data.CaseTypesData ocasetypesdata = new Data.CaseTypesData(id.collectionName);
-                    //DataItem<CaseType> oicase = new DataItem<CaseType>();
-                    //oicase.item = ocasetypesdata.GetCaseType(id.item._id);
-                    //return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oicase);
-                    break;
-                case "casetypefields":
-                    //MBADCases.Data.CaseTypesFieldData ocasetypesFielddata = new Data.CaseTypesFieldData(id.collectionName);
-                    //DataItem<CaseTypeField> oicasef = new DataItem<CaseTypeField>();
-                    //oicasef.item = ocasetypesFielddata.GetCaseTypeField(id.item._id);
-                    //return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oicasef);
-                    break;
             }
-            return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, null);
+            catch (Exception ex)
+            {
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix data", Messageype = "ERROR", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
+
+                throw;
+            }
+            finally
+            {
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix data", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+            }
         }
 
         [Route("get")]
         [Route("get/{id?}")]
         [HttpPost]
-        public IActionResult getitem(object  sid)
+        public IActionResult getitem(object sid)
         {
-            helperservice.LogWixMessages("getitem", sid.ToString());
-            WixDB.data id = Newtonsoft.Json.JsonConvert.DeserializeObject<WixDB.data>(sid.ToString());
-
-            string js = Newtonsoft.Json.JsonConvert.SerializeObject(id.item);
-            var oitm = Newtonsoft.Json.JsonConvert.DeserializeObject<Tenant>(js);
-
-            switch (id.collectionName.ToLower())
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string scasetypes = "";
+            string sresponse = "";
+            try
             {
-                case "tenants":
-                   
-                    MBADCases.Data.TenantData otendata = new Data.TenantData(id.collectionName);
-                    DataItem<Tenant> oi = new DataItem<Tenant>();
-                    oi.item = otendata.GetTenant(oitm._id);
-                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oi);
+                srequest= sid.ToString();
+               WixDB.data id = Newtonsoft.Json.JsonConvert.DeserializeObject<WixDB.data>(sid.ToString());
+                _cases.Gettenant(tenantid);
+                string js = Newtonsoft.Json.JsonConvert.SerializeObject(id.item);
+                var oitm = Newtonsoft.Json.JsonConvert.DeserializeObject<Case>(js);
+                               
+                DataItem<Case> oi = new DataItem<Case>();
+                oi.item = _cases.Get(oitm._id);
+                sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(oi);
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oi);
 
-                case "casetypes":
-                    MBADCases.Data.CaseTypesData ocasetypesdata = new Data.CaseTypesData(id.collectionName);
-                    DataItem<CaseType> oicase = new DataItem<CaseType>();
-                    oicase.item = ocasetypesdata.GetCaseType(oitm._id);
-                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oicase);
-
-                case "casetypefields":
-                    MBADCases.Data.CaseTypesFieldDataNOTUSED ocasetypesFielddata = new Data.CaseTypesFieldDataNOTUSED(id.collectionName);
-                    DataItem<CaseTypeFieldnotused> oicasef = new DataItem<CaseTypeFieldnotused>();
-                    oicasef.item = ocasetypesFielddata.GetCaseTypeField(oitm._id);
-                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oicasef);
-
+                  
+ 
             }
-            return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, null);
-            //WixDB.item oitem = new WixDB.item();// { _id = Guid.NewGuid().ToString(), _owner = Guid.NewGuid().ToString(), make = "Toyota", model = "Camry", year = 2018, date_added = DateTime.Now.ToLongDateString() };
-            //oi.item = oitem;
+            catch (Exception ex)
+            {
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix dataItem", Messageype = "ERROR", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
 
-
+                throw;
+            }
+            finally
+            {
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix dataItem", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+            }
 
 
         }
@@ -115,54 +131,72 @@ namespace MBADCases.Controllers
         [HttpPost]
         public IActionResult finditem(WixDB.data id)
         {
-            helperservice.LogWixMessages("finditem", Newtonsoft.Json.JsonConvert.SerializeObject(id));
-            switch (id.collectionName.ToLower())
+             
+             
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string scasetypes = "";
+            string sresponse = "";
+            try
             {
-                case "tenants":
-                    FindItems<Tenant> olistdata = new FindItems<Tenant>();
-                    MBADCases.Data.TenantData otendata = new Data.TenantData(id.collectionName);
-                    //List<Tenant> listtn = otendata.getTenants();
-                    olistdata.items=  otendata.getTenants();
-                    olistdata.totalCount = olistdata.items.Count;
-                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, olistdata);
+                _cases.Gettenant(tenantid);
+                string js = Newtonsoft.Json.JsonConvert.SerializeObject(id.item);
+                var oitm = Newtonsoft.Json.JsonConvert.DeserializeObject<Case>(js);
+                DataItem<WixCase> oi = new DataItem<WixCase>();
+                // List<FindItems<JObject>> od = new List<FindItems<JObject>>();
+                List<JObject> o = new List<JObject>();
+                foreach (Case c in _cases.Searchcases("Casetype=" + id.collectionName))
+                {
+                    WixCase ocase = new WixCase();
+                    //job.Add("Casedescription", c.Casedescription);
+
+                    ocase.casedescription = c.Casedescription;
+                    ocase._id = c._id;
+                    ocase._owner = c.Createuser;
+                    ocase.casestatus = c.Casestatus;
+                    ocase.casetitle = c.Casetitle;
+                    ocase.casetype = c.Casetype;
+                    ocase.createdate = c.Createdate;
+                    ocase.createuser = c.Createuser;
+                    ocase.currentactionid = c.Currentactionid;
+                    ocase.currentactivityid = c.Currentactivityid;
+                    ocase.updatedate = c.Updatedate;
+                    ocase.updateuser = c.Updateuser;
+
+                    string oitem = Newtonsoft.Json.JsonConvert.SerializeObject(ocase);
+
+                    JObject job = JObject.Parse(oitem);
+                    foreach (Casefield f in c.Fields)
+                    {
+                        job.Add(f.Fieldid.ToLower(), f.Value);
+                    }
                     
-                case "casetypes":
-                    FindItems<CaseType> olistcasetypedata = new FindItems<CaseType>();
-                    MBADCases.Data.CaseTypesData ocasetypesdata = new Data.CaseTypesData(id.collectionName);
-                    //List<Tenant> listtn = otendata.getTenants();
-                    olistcasetypedata.items = ocasetypesdata.GetCaseTypes();
-                    olistcasetypedata.totalCount = olistcasetypedata.items.Count;
-                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, olistcasetypedata);
-                case "casetypefields":
-                    FindItems<CaseTypeFieldnotused> olistcasetypefields = new FindItems<CaseTypeFieldnotused>();
-                    MBADCases.Data.CaseTypesFieldDataNOTUSED ocasetypefieldsdata = new Data.CaseTypesFieldDataNOTUSED(id.collectionName);
-                    //List<Tenant> listtn = otendata.getTenants();
-                    olistcasetypefields.items = ocasetypefieldsdata.GetCaseTypeFields();
-                    olistcasetypefields.totalCount = olistcasetypefields.items.Count;
-                    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, olistcasetypefields);
-                default:
-                    //MBADCases.Data.TenantData otendata = new Data.TenantData(id.collectionName);
-                    //olistdata.items = otendata.getTenants();
-                    break;
+                    o.Add(job);
+                }
+
+                FindItems<JObject> olistdata = new FindItems<JObject>();
+                // MBADCases.Data.TenantData otendata = new Data.TenantData(id.collectionName);
+                //List<Tenant> listtn = otendata.getTenants();
+                olistdata.items = o;
+                olistdata.totalCount = o.Count;
+                sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(olistdata);
+
+                var retj = Newtonsoft.Json.JsonConvert.DeserializeObject<object>(sresponse);
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, olistdata);
+
             }
+            catch (Exception ex)
+            {
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix data", Messageype = "ERROR", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
 
-           
-
-            //FindItems olistdata = new FindItems();
-            //Guid g = Guid.NewGuid();
-
-
-            //WixDB.item oitem = new WixDB.item() { _id =   Guid.NewGuid().ToString(), _owner = Guid.NewGuid().ToString(), make = "Toyota", model = "Camry", year = 2018, date_added = DateTime.Now.ToString("mmm dd, yyyy hh:mm tt") };
-            //olistdata.items.Add(oitem);
-            //oitem = new WixDB.item() { _id =   Guid.NewGuid().ToString(), _owner = Guid.NewGuid().ToString(), make = "Ford", model = "Mustang", year = 2018, date_added = DateTime.Now.ToLongDateString() };
-            //olistdata.items.Add(oitem);
-            //oitem = new WixDB.item() { _id = Guid.NewGuid().ToString(), _owner = Guid.NewGuid().ToString(), make = "Tesla", model = "ES", year = 2018, date_added = DateTime.Now.ToLongDateString() };
-            //olistdata.items.Add(oitem);
-
-            //olistdata.totalCount = olistdata.items.Count;
-
-
-            return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, null);
+                throw;
+            }
+            finally
+            {
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix data", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+            }
         }
 
         [Route("update")]
@@ -170,14 +204,33 @@ namespace MBADCases.Controllers
         [HttpPost]
         public IActionResult updateitem(object id)
         {
-            helperservice.LogWixMessages("updateitem", Newtonsoft.Json.JsonConvert.SerializeObject(id));
-            DataItem<item> oi = new DataItem<item>();
-            WixDB.item oitem = new WixDB.item();// { _id = Guid.NewGuid().ToString(), _owner = Guid.NewGuid().ToString(), model = "Camry" };
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string scasetypes = "";
+            string sresponse = "";
+            try
+            {
+                srequest= Newtonsoft.Json.JsonConvert.SerializeObject(id);
+                DataItem<item> oi = new DataItem<item>();
+                WixDB.item oitem = new WixDB.item();// { _id = Guid.NewGuid().ToString(), _owner = Guid.NewGuid().ToString(), model = "Camry" };
            
-            oi.item = oitem;
-           
-          
-            return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oi);
+                oi.item = oitem;
+                sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(oitem);
+
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oi);
+            }
+            catch (Exception ex)
+            {
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix dataUpdate", Messageype = "ERROR", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
+
+                throw;
+            }
+            finally
+            {
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix dataUpdate", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+            }
         }
 
         [Route("remove")]

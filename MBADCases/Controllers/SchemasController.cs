@@ -6,6 +6,7 @@ using MBADCases.Authentication;
 using MBADCases.Models;
 using MBADCases.Services;
 using Microsoft.AspNetCore.Http;
+using MongoDB.Driver;
 
 namespace MBADCases.Controllers
 {
@@ -49,30 +50,43 @@ namespace MBADCases.Controllers
       
         public IActionResult find(WixDB.find id)
         {
-            var usrid = HttpContext.Session.GetString("mbaduserid");
-            var tenantid = HttpContext.Session.GetString("mbadtanent");
-            _casetypes.Gettenant(tenantid);
-            helperservice.LogWixMessages("find", Newtonsoft.Json.JsonConvert.SerializeObject(id));
-
-
-            List<WixDB.Schema> lsch = new List<WixDB.Schema>();
-            foreach (string o in id.schemaIds)
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string scasetypes = "";
+            string sresponse = "";
+            try
             {
-                List<CaseType> oct = _casetypes.Searchcases(o);
-                if(oct!=null && oct.Count > 0) { 
-                    WixDB.Schema osch = GetSchema(oct[0], 50, 3600);
-                    lsch.Add(osch);
+                _casetypes.Gettenant(tenantid);
+                srequest= Newtonsoft.Json.JsonConvert.SerializeObject(id);
+
+                List<WixDB.Schema> lsch = new List<WixDB.Schema>();
+                scasetypes = id.schemaIds.ToString();
+                foreach (string o in id.schemaIds)
+                {
+                    List<CaseType> oct = _casetypes.Searchcases(o);
+                    if (oct != null && oct.Count > 0)
+                    {
+                        WixDB.Schema osch = GetSchema(oct[0], 50, 3600);
+                        lsch.Add(osch);
+                    }
                 }
-
+                WixDB.DBSchemas osc = new WixDB.DBSchemas { Schemas = lsch };
+                sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(osc);
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, osc);
             }
+            catch(Exception ex)
+            {
+                _casetypes.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix Find", Messageype = "ERROR", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
 
-
-            WixDB.DBSchemas osc = new WixDB.DBSchemas { Schemas = lsch };
-
-
-             
-            helperservice.LogWixMessages("find_response", Newtonsoft.Json.JsonConvert.SerializeObject(osc));
-            return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, osc);
+                throw;
+            }
+            finally
+            {
+                _casetypes.SetMessage(new Message() { Callerid="Wix", Callerrequest=srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype="Wix Find", MessageDesc=smessage, Tenantid= tenantid,Userid=usrid });
+            }
+          
         }
 
         [Route("list")]
@@ -80,29 +94,48 @@ namespace MBADCases.Controllers
         [HttpPost]
         public IActionResult list(WixDB.find id)
         {
-
-            var usrid = HttpContext.Session.GetString("mbaduserid");
-            var tenantid = HttpContext.Session.GetString("mbadtanent");
-            _casetypes.Gettenant(tenantid);
-
-            helperservice.LogWixMessages("list", Newtonsoft.Json.JsonConvert.SerializeObject(id));
-
-            List<WixDB.Schema> lsch = new List<WixDB.Schema>();
-
-            //get all case types
-            List<CaseType> oct = _casetypes.Searchcases(""); 
-
-            foreach(CaseType o in oct)
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string sresponse = "";
+            try
             {
-                WixDB.Schema osch = GetSchema(o, 50, 3600);
-                lsch.Add(osch);
+
+                _casetypes.Gettenant(tenantid);
+
+                srequest = Newtonsoft.Json.JsonConvert.SerializeObject(id);
+
+                List<WixDB.Schema> lsch = new List<WixDB.Schema>();
+
+                //get all case types
+                List<CaseType> oct = _casetypes.Searchcases("");
+
+                foreach (CaseType o in oct)
+                {
+                    WixDB.Schema osch = GetSchema(o, 50, 3600);
+                    lsch.Add(osch);
+                }
+
+                sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(lsch);
+
+                WixDB.DBSchemas osc = new WixDB.DBSchemas { Schemas = lsch };
+
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, osc);
+            }
+            catch (Exception ex)
+            {
+                _casetypes.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "list", Callertype = "Wix list", Messageype = "ERROR", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
+
+                throw;
+            }
+            finally
+            {
+                _casetypes.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse= sresponse, Callerrequesttype = "list", Callertype = "Wix list", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
             }
 
-            WixDB.DBSchemas osc = new WixDB.DBSchemas { Schemas = lsch };
-           
-            return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, osc);
         }
-        
+
         private static List<WixDB.Schema> GetAllSchemasfromDB()
         {
             string spath =   "Models/Schemas.json";
@@ -129,9 +162,11 @@ namespace MBADCases.Controllers
             {
                 foreach (Models.Action a in act.Actions)
                 {
+                    IComparer<Models.Casetypefield> comparer = new MyCaseTypeFieldOrder();
+                    a.Fields.Sort(comparer);
                     foreach (Casetypefield f in a.Fields)
                     {
-                        ofields.Add(new KeyValuePair<string, FieldValue>(f.Fieldid,
+                        ofields.Add(new KeyValuePair<string, FieldValue>(f.Fieldid.ToLower(),
                                     new FieldValue()
                                     {
                                         DisplayName = f.Fieldname,
@@ -146,7 +181,7 @@ namespace MBADCases.Controllers
             {
                 foreach (Casetypefield f in casetype.Fields)
                 {
-                    ofields.Add(new KeyValuePair<string, FieldValue>(f.Fieldid,
+                    ofields.Add(new KeyValuePair<string, FieldValue>(f.Fieldid.ToLower(),
                                         new FieldValue()
                                         {
                                             DisplayName = f.Fieldname,
@@ -198,8 +233,90 @@ namespace MBADCases.Controllers
                       })
                );
 
+            ofields.Add(new KeyValuePair<string, FieldValue>("Casetitle",
+                      new FieldValue()
+                      {
+                          DisplayName = "Casetitle",
+                          QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                          Type = "text"
+                      })
+               );
+            ofields.Add(new KeyValuePair<string, FieldValue>("Casetype",
+                     new FieldValue()
+                     {
+                         DisplayName = "Casetype",
+                         QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                         Type = "text"
+                     })
+              );
+            ofields.Add(new KeyValuePair<string, FieldValue>("Casestatus",
+                    new FieldValue()
+                    {
+                        DisplayName = "Casestatus",
+                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                        Type = "text"
+                    })
+             );
+            ofields.Add(new KeyValuePair<string, FieldValue>("Currentactivityid",
+                   new FieldValue()
+                   {
+                       DisplayName = "Currentactivityid",
+                       QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                       Type = "text"
+                   })
+            );
+            ofields.Add(new KeyValuePair<string, FieldValue>("Currentactionid",
+                   new FieldValue()
+                   {
+                       DisplayName = "Currentactionid",
+                       QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                       Type = "text"
+                   })
+            );
+            ofields.Add(new KeyValuePair<string, FieldValue>("Casedescription",
+                   new FieldValue()
+                   {
+                       DisplayName = "Casedescription",
+                       QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                       Type = "text"
+                   })
+            );
+            ofields.Add(new KeyValuePair<string, FieldValue>("Createdate",
+                    new FieldValue()
+                    {
+                        DisplayName = "Createdate",
+                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                        Type = "text"
+                    })
+             );
+            ofields.Add(new KeyValuePair<string, FieldValue>("Createuser",
+                    new FieldValue()
+                    {
+                        DisplayName = "Createuser",
+                        QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                        Type = "text"
+                    })
+             );
+            ofields.Add(new KeyValuePair<string, FieldValue>("Updatedate",
+                   new FieldValue()
+                   {
+                       DisplayName = "Updatedate",
+                       QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                       Type = "text"
+                   })
+            );
+            ofields.Add(new KeyValuePair<string, FieldValue>("Updateuser",
+                   new FieldValue()
+                   {
+                       DisplayName = "Updateuser",
+                       QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
+                       Type = "text"
+                   })
+            );
+
             return ofields;
         }
+        
         private static IDictionary<string, FieldValue> GetTenantFields()
         {
             IDictionary<string, FieldValue> ofields = GetWixFields();

@@ -101,6 +101,14 @@ namespace MBADCases.Models
         public bool Required { get; set; }
         public string Value { get; set; }
         public List<Option> Options { get; set; }
+        public int CompareTo(Casefield compareSeq)
+        {
+            // A null value means that this object is greater.
+            if (compareSeq == null)
+                return 1;
+            else
+                return this.Seq.CompareTo(compareSeq.Seq);
+        }
     }
     //public class CaseAction
     //{

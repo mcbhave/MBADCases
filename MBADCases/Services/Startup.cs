@@ -15,6 +15,7 @@ using Microsoft.Extensions.Options;
 using MBADCases.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Serialization;
 
 namespace MBADCases
 {
@@ -38,9 +39,13 @@ namespace MBADCases
                 setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status404NotFound ));
                 setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status409Conflict));
                 setupAction.ReturnHttpNotAcceptable = true;
-
+              
 
             });
+            services.AddMvc()
+                 .AddNewtonsoftJson(options =>
+                options.SerializerSettings.ContractResolver =
+                   new CamelCasePropertyNamesContractResolver());
 
             services.AddDistributedMemoryCache();
             services.AddSession(options => {
@@ -71,7 +76,8 @@ namespace MBADCases
 
             //services.AddAuthentication("Basic").AddScheme<AuthenticationSchemeOptions, Authentication.BasicAuthenticationHandler>("Basic", null);
 
-            services.AddControllers();
+            services.AddControllers()
+                .AddNewtonsoftJson();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

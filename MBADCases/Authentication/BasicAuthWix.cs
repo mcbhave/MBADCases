@@ -97,6 +97,7 @@ namespace MBADCases.Authentication
                                     if (owixreq != null)
                                     {
                                         string stenant = owixreq.requestContext.settings.Yauthtenantname;
+                                        if (stenant != null) { 
                                         string rapiduserid = owixreq.requestContext.memberId;
                                         //find the tenant id
 
@@ -144,6 +145,12 @@ namespace MBADCases.Authentication
                                             omess.MessageDesc = "Invalid Tenant";
                                             allpass = false;
                                         }
+                                    }
+                                    else
+                                    {
+                                        omess.MessageDesc = "Invalid Body Request";
+                                        allpass = false;
+                                    }
                                     }
                                     else
                                     {
