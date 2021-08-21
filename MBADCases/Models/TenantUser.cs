@@ -20,5 +20,11 @@ namespace MBADCases.Models
         public string Role { get; set; }
 
         public string Type { get; set; }
+
+        public string YAuthSource { get; set; }
+
+        public string RapidAPIkey { get; set; }
+
+        public string Installationid { get; set; }
     }
 }

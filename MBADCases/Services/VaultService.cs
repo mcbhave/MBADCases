@@ -113,7 +113,7 @@ namespace MBADCases.Services
                 oadapter.Encryptwithkey = ovault.Encrypt(oadapter.Encryptwithkey);
 
                 oadapter.Tenantid = _tenantid;
-                _Vaultcollection.InsertOneAsync(oadapter);
+                _Vaultcollection.InsertOne(oadapter);
                 return oadapter;
             }
             catch

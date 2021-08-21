@@ -95,11 +95,18 @@ namespace MBADCases.Models
 
     public class Casefield
     {
+        public Casefield()
+        {
+            Options = new List<Option>();
+            Type = "TEXT";
+        }
         public string Fieldid { get; set; }
         public string Fieldname { get; set; }
         public int Seq { get; set; }
         public bool Required { get; set; }
         public string Value { get; set; }
+
+        public string Type { get; set; }
         public List<Option> Options { get; set; }
         public int CompareTo(Casefield compareSeq)
         {

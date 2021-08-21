@@ -54,7 +54,7 @@ namespace MBADCases.Models
         {
             try
             {
-                _Adapterscollection.InsertOneAsync(oadapter);
+                _Adapterscollection.InsertOne(oadapter);
                 return oadapter;
             }
             catch

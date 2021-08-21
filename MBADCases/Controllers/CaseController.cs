@@ -149,8 +149,31 @@ namespace MBADCases.Controllers
             try
             {
                 _caseservice.Gettenant(tenantid);
+                var oc = _caseservice.Get(id);
+                if(oc != null)
+                {
+                    ocase._id = oc._id;
+                    if (ocase.Casetitle!=null && ocase.Casetitle.ToLower() != oc.Casetitle.ToLower()) { oc.Casetitle = ocase.Casetitle; }
+                    if (ocase.Casenumber != 0 && ocase.Casenumber != oc.Casenumber) { oc.Casenumber = ocase.Casenumber; }
+                    if (ocase.Casedescription != null && ocase.Casedescription.ToLower() != oc.Casedescription.ToLower()) { oc.Casedescription = ocase.Casedescription; }
+                    if (ocase.Casestatus != null && ocase.Casestatus.ToLower() != oc.Casestatus.ToLower()) { oc.Casestatus = ocase.Casestatus; }
+                    if (ocase.Casetype != null && ocase.Casetype.ToLower() != oc.Casetype.ToLower()) { oc.Casetype = ocase.Casetype; }
+                    if (ocase.Currentactionid != null && ocase.Currentactionid.ToLower() != oc.Currentactionid.ToLower()) { oc.Currentactionid = ocase.Currentactionid; }
+                    if (ocase.Currentactivityid != null && ocase.Currentactivityid.ToLower() != oc.Currentactivityid.ToLower()) { oc.Currentactivityid = ocase.Currentactivityid; }
+                    Casefield tmpf = null;
+                       foreach (Casefield f in ocase.Fields)
+                        {
+                            tmpf= oc.Fields.Find(fo => fo.Fieldid.ToLower() == f.Fieldid.ToLower());
+                            if (tmpf != null)
+                            {
+                                if (f.Value!=null && f.Value.ToLower() != tmpf.Value.ToLower()) { tmpf.Value = f.Value; }
+                            if (f.Type != null && f.Type.ToLower() != tmpf.Type.ToLower()) { tmpf.Type = f.Type; }
+                        }
+                       
+                        }
+                }
 
-                _caseservice.Update(id, ocase);
+                _caseservice.Update(id, oc);
                   oms = _caseservice.SetMessage(ICallerType.CASE, id, sj, "POST", "UPDATE", "Case update", usrid, null);
                  return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseResponse(ocase._id, oms));
             }

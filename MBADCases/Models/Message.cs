@@ -27,6 +27,7 @@ namespace MBADCases.Models
         public string Callerrequesttype { get; set; }
         public string MessageDesc{ get; set; }
         public string Userid { get; set; }
+        public string YAuthSource { get; set; }
         public string Messagedate { get; set; }
     }
     public static class ICallerType

@@ -149,7 +149,7 @@ namespace MBADCases.Controllers
         {
             WixDB.Schema osch = new WixDB.Schema
             {
-                DisplayName = casetype.Casestypedesc ,
+                DisplayName = casetype.Casetype ,
                 Id = casetype.Casetype,
                 AllowedOperations = new string[] { "get", "find", "count", "update", "insert", "remove" },
                 MaxPageSize = maxPage,
@@ -171,7 +171,7 @@ namespace MBADCases.Controllers
                                     {
                                         DisplayName = f.Fieldname,
                                         QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
-                                        Type = "text"
+                                        Type = f.Type.ToLower()
                                     })
                                 );
                     }
@@ -186,7 +186,7 @@ namespace MBADCases.Controllers
                                         {
                                             DisplayName = f.Fieldname,
                                             QueryOperators = new string[] { "eq", "lt", "gt", "hasSome", "and", "lte", "gte", "or", "not", "ne", "startsWith", "endsWith" },
-                                            Type = "text"
+                                            Type = f.Type.ToLower()
                                         })
                                     );
                 }

@@ -7,7 +7,7 @@ namespace MBADCases.Models
     {
         public CaseTypeResponse(CaseType ocase, Message oms)
         {
-            if (ocase != null) { _id = ocase._id; } else { oms.Messagecode = "404"; }
+            if (ocase != null) { _id = ocase._id; } else { oms.Messagecode = "417"; }
             
             //Casenumber = ocase.Casenumber;
             Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };

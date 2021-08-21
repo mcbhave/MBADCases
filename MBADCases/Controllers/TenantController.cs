@@ -80,26 +80,98 @@ namespace MBADCases.Controllers
         public IActionResult Post(string id, Tenant tenant)
         {
             Message oms;
-            var usrid = HttpContext.Session.GetString("mbaduserid");
-            var tenantid = HttpContext.Session.GetString("mbadtanent");
-            //string id = ocase._id;
-            //ocasetype._id = id;
+            Tenant oten=null;
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string sresponse = "";
+          
             try
             {
-                _tenantservice.Gettenant(tenantid);
+                smessage = "Database connection string updates not allowed for BASIC scubscription";
 
-                _tenantservice.Update(id, tenant);
-                oms = _tenantservice.SetMessage(id, null, "POST", "UPDATE", "Case type update", usrid, null);
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, tenant);
+                srequest = Newtonsoft.Json.JsonConvert.SerializeObject(tenant);
+                _tenantservice.Gettenant(tenantid);
+                oten = _tenantservice.Get(id);
+                
+                if (oten != null)
+                {
+                    oten._id = id;
+                    oten.Tenantdesc = tenant.Tenantdesc;
+                    if (tenant!=null && tenant.Rapidsubscription!=null)
+                    {
+                      if((tenant.Rapidsubscription.Contains("PRO")) || (tenant.Rapidsubscription.Contains("ULTRA")) || (tenant.Rapidsubscription.Contains("MEGA")))
+                        {
+                            oten.Dbconnection = tenant.Dbconnection;
+                            smessage = "";
+                        }
+                        else
+                        {
+                            oten.Dbconnection = "";
+                        }
+                    }
+                    else
+                    {
+                        oten.Dbconnection = "";
+                    }
+                   
+                    _tenantservice.Update(id, oten);
+                }
+                
+                
+                oms = _tenantservice.SetMessage(new Message() { Messageype = "Status200OK", Messagecode = "200", Callerid = tenant._id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "POST", Callertype = "TENANT", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new TenantResponse(oten, oms));
             }
             catch (Exception ex)
             {
-                oms = _tenantservice.SetMessage(id, null, "POST", "UPDATE", "Case type update", usrid, ex);
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, tenant);
+                smessage = ex.ToString();
+                oms = _tenantservice.SetMessage(new Message() { Messageype = "Status417ExpectationFailed", Messagecode = "417", Callerid = tenant._id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "POST", Callertype = "TENANT", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new TenantResponse(oten, oms));
             }
 
         }
-         
+
+        [HttpPost("{id:length(24)}/{apikey}", Name = "UpdateTenantApiKey")]
+        public IActionResult Post(string id,string apikey)
+        {
+            Message oms;
+            Tenant oten = null;
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string sresponse = "";
+
+            try
+            {
+
+
+                srequest = id + ", key=" + apikey;
+                _tenantservice.Gettenant(tenantid);
+
+                  oten = _tenantservice.Get(id);
+                if (oten != null)
+                {
+                    oten._id = id;
+                    oten.Rapidapikey = apikey;
+                    _tenantservice.Update(id, oten);
+                }
+
+                oms = _tenantservice.SetMessage(new Message() { Messageype = "Status200OK", Messagecode = "200", Callerid = id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "POST", Callertype = "TENANT", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new TenantResponse(oten, oms));
+            }
+            catch (Exception ex)
+            {
+                smessage = ex.ToString();
+                oms = _tenantservice.SetMessage(new Message() { Messageype = "Status417ExpectationFailed", Messagecode = "417", Callerid = id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "POST", Callertype = "TENANT", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new TenantResponse(null, oms));
+            }
+
+        }
+
         // PUT api/<CaseController>/5
         [HttpPut]
         public IActionResult Put(Tenant tenant)

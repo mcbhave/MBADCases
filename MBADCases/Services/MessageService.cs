@@ -34,12 +34,12 @@ namespace MBADCases.Services
         {
             try
             {
-                if(omess.Messageype == "ERROR")
+                if(omess.Messageype == "ERROR" || omess.Messageype=="Status417ExpectationFailed")
                 {
                     _messagemaster.InsertOneAsync(omess);
                 }
 
-                omess.MessageDesc = "";
+                //omess.MessageDesc = "";
                 _message.InsertOneAsync(omess);
                 return omess;
             }

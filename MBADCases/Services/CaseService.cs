@@ -250,7 +250,7 @@ namespace MBADCases.Services
                 //create a case _id first
                 var oc = ocase.ToJson();
                 CaseDB ocasedb = Newtonsoft.Json.JsonConvert.DeserializeObject<CaseDB>(oc);
-                _casedbcollection.InsertOneAsync(ocasedb);
+                _casedbcollection.InsertOne(ocasedb);
 
                 //first get the case type
                 //get case type details
@@ -471,7 +471,7 @@ namespace MBADCases.Services
                     ocasedb.Currentactivityid = "";
                     ocasedb.Currentactionid  = "";
                 }
-                _casedbcollection.ReplaceOneAsync(ocase => ocase._id == ocasedb._id, ocasedb);
+                _casedbcollection.ReplaceOne(ocase => ocase._id == ocasedb._id, ocasedb);
                 return ocasedb;
             }
             catch
@@ -480,17 +480,41 @@ namespace MBADCases.Services
             }
           
         }
-
-        public void Update(string id,Case CaseIn) 
+        public void Update(string id, Case CaseIn)
+        {
+            try
+            {
+                _casecollection.ReplaceOne(ocase => ocase._id == id, CaseIn); ;
+            }
+            catch { throw; }
+        }
+        public void Update1(string id,Case CaseIn) 
         {
             try { 
             foreach (Casefield csat in CaseIn.Fields)
             {
                 var arrayFilter = Builders<BsonDocument>.Filter.Eq("_id", new ObjectId(id))
                         & Builders<BsonDocument>.Filter.Eq("Fields.Fieldid", csat.Fieldid);
-                var arrayUpdate = Builders<BsonDocument>.Update.Set("Fields.$.Value", csat.Value);
 
-                var casecoll = TenantDatabase.GetCollection<BsonDocument>(_settings.CasesCollectionName);
+                    UpdateDefinition<BsonDocument> arrayUpdate=null;
+
+                    if (csat.Value != null)
+                    {
+                        arrayUpdate = Builders<BsonDocument>.Update.Set("Fields.$.Value", csat.Value);
+                    }
+                    if (csat.Type != null) {
+                        if (arrayUpdate == null)
+                        {
+                            arrayUpdate = Builders<BsonDocument>.Update.Set("Fields.$.Type", csat.Type);
+                        }
+                        else
+                        {
+                            arrayUpdate.AddToSet("Fields.$.Type", csat.Type);
+                        }
+                   
+                    }
+
+                    var casecoll = TenantDatabase.GetCollection<BsonDocument>(_settings.CasesCollectionName);
                 casecoll.UpdateOne(arrayFilter, arrayUpdate);
             }
             }

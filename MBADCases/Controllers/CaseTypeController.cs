@@ -25,47 +25,53 @@ namespace MBADCases.Controllers
         [HttpGet("{id:length(24)}", Name = "GetCaseType")]
         public IActionResult Get(string id)
         {
-            Message oms;
-            var usrid = HttpContext.Session.GetString("mbaduserid");
-            var tenantid = HttpContext.Session.GetString("mbadtanent");
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string sresponse = "";
             try
             {
+                srequest = id;
                 _casetypeservice.Gettenant(tenantid);
 
                 CaseType ocase = _casetypeservice.Get(id);
-                oms = _casetypeservice.SetMessage(id, id, "GET", "200", "Case type Search", usrid, null);
+
                 if (ocase == null)
                 {
                     ocase = new CaseType();
-                    oms = _casetypeservice.SetMessage(ocase._id, id, "GET", "400", "Not found", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
+                    sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(ocase);
+
+                    var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status404NotFound", Messagecode = "404", Callerid = id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "GET", Callertype = "CASETYPE", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
                 }
                 else
                 {
-                    oms = _casetypeservice.SetMessage(ocase._id, id, "GET", "200", "Case type Search by name", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
+                    var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status200OK", Messagecode = "200", Callerid = id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "GET", Callertype = "CASETYPE", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 }
+
             }
             catch (Exception ex)
             {
-                CaseType ocase = new CaseType();
-                ocase._id = id;
-                oms = _casetypeservice.SetMessage(id, id, "GET", "501", "Case Type Search", usrid, ex);
+                var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status417ExpectationFailed", Messagecode = "417", Callerid = id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "GET", Callertype = "CASETYPE", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
 
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(ocase, oms));
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(null, oms));
+
             }
         }
 
         [HttpGet("{name}", Name = "GetCaseTypeByName")]
         public IActionResult GetByName(string name)
         {
-            Message oms;
-            var usrid = HttpContext.Session.GetString("mbaduserid");
-            var tenantid = HttpContext.Session.GetString("mbadtanent");
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string sresponse = "";
             try
             {
+                srequest = name;
                 _casetypeservice.Gettenant(tenantid);
 
                 CaseType ocase = _casetypeservice.GetByName(name);
@@ -73,113 +79,134 @@ namespace MBADCases.Controllers
                 if (ocase == null)
                 {
                     ocase = new CaseType();
-                    oms = _casetypeservice.SetMessage(ocase._id, name, "GET", "400", "Not found", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
+                    sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(ocase);
+
+                    var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status404NotFound", Messagecode = "404", Callerid = name, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "GET", Callertype = "CASETYPE", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });                   
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound, ocase);
                 }
                 else
                 {
-                    oms = _casetypeservice.SetMessage(ocase._id, name, "GET", "200", "Case type Search by name", usrid, null);
-                    ocase.Message = new MessageResponse() { Messagecode = oms.Messagecode,  Messageype = oms.Messageype, _id = oms._id };
+                    var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status200OK", Messagecode = "200", Callerid = name, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "GET", Callertype = "CASETYPE", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
                     return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
                 }
 
             }
             catch (Exception ex)
             {
-                CaseType ocaset= new CaseType();
-                
-                oms = _casetypeservice.SetMessage(name, name, "GET", "501", "Case Type Search", usrid, ex);
+                var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status417ExpectationFailed", Messagecode = "417", Callerid = name, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "GET", Callertype = "CASETYPE", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
 
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(ocaset, oms));
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(null, oms));
+
             }
         }
         [HttpPost("{id:length(24)}", Name = "UpdateCaseType")]
         public IActionResult Post(string id, CaseType ocasetype)
         {
-            Message oms;
-            var usrid = HttpContext.Session.GetString("mbaduserid");
-            var tenantid = HttpContext.Session.GetString("mbadtanent");
-            //string id = ocase._id;
-            ocasetype._id = id;
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string sresponse = "";
             try
             {
+                srequest = Newtonsoft.Json.JsonConvert.SerializeObject(ocasetype);
                 _casetypeservice.Gettenant(tenantid);
-
+                ocasetype._id = id;
                 _casetypeservice.Update(id, ocasetype);
-                oms = _casetypeservice.SetMessage( id, null, "POST", "UPDATE", "Case type update", usrid, null);
+
+                sresponse = "Status200OK";
+                //var oms = _casetypeservice.SetMessage(oretcase._id, CaseTypeName, "PUT", "200", "Case type insert", usrid, null);
+                var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status200OK", Messagecode = "200", Callerid = ocasetype._id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "POST", Callertype = "CASETYPE", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseTypeResponse(ocasetype, oms));
+
             }
             catch (Exception ex)
             {
-                oms = _casetypeservice.SetMessage( id, null, "POST", "UPDATE", "Case type update", usrid, ex);
+                var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status417ExpectationFailed", Messagecode = "417", Callerid = id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "POST", Callertype = "CASETYPE", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
+
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(ocasetype, oms));
+
             }
         }
 
         [HttpGet("search/{filter}", Name = "GetCasetypesbyfilter")]
         public IActionResult Search(string filter)
         {
-        
-            var usrid = HttpContext.Session.GetString("mbaduserid");
-            var tenantid = HttpContext.Session.GetString("mbadtanent");
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string sresponse = "";
             try
             {
+                srequest = filter;
                 _casetypeservice.Gettenant(tenantid);
-
+                if (filter.ToLower() == "all") { filter = ""; }
                 List<CaseType> ocase = _casetypeservice.Searchcases(filter);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
-                //List<Case> oretcase = new List<Case>();
-                //if (ocase != null)
-                //{
-
-                //    foreach (BsonDocument b in ocase)
-                //    {
-                //        Case ocas = BsonSerializer.Deserialize<Case>(b.ToJson());
-                //        oretcase.Add(ocas);
-                //    }
-
-                //    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oretcase);
-                //}
-                //else
-                //{
-                //    oms = _caseservice.SetMessage(ICallerType.CASE_SEARCH, "", "", "GET", "404", "Case Search", usrid, null);
-                //    oretcase = new List<Case>();
-
-                //    return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, ocase);
-                //}
 
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status417ExpectationFailed", Messagecode = "417", Callerid = "yardillo", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "PUT", Callertype = "CASETYPE", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
+
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(null, oms));
+
             }
         }
 
         [HttpPut("{CaseTypeName}")]
         public IActionResult Put(string CaseTypeName,CaseType ocasetype)
         {
-            Message oms;
-            var usrid = HttpContext.Session.GetString("mbaduserid");
-            var tenantid = HttpContext.Session.GetString("mbadtanent");
-            string createuserid = ocasetype.Createuser;
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string sresponse = "";
             try
             {
+                srequest = Newtonsoft.Json.JsonConvert.SerializeObject(ocasetype);
                 _casetypeservice.Gettenant(tenantid);
                
-              
                 var oretcase = _casetypeservice.Create(CaseTypeName,ocasetype);
-                oms = _casetypeservice.SetMessage(oretcase._id, CaseTypeName, "PUT", "200", "Case type insert", createuserid, null);
 
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(ocasetype, oms));
+                sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(oretcase);
+                var oms= _casetypeservice.SetMessage(new Message() {Messageype= "Status200OK", Messagecode="200", Callerid = oretcase._id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "PUT", Callertype = "CASETYPE", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseTypeResponse(ocasetype, oms));
             }
             catch (Exception ex)
             {
-                oms = _casetypeservice.SetMessage(null, CaseTypeName, "PUT", "", "Case insert", createuserid, ex);
+               var oms= _casetypeservice.SetMessage(new Message() { Messageype = "Status417ExpectationFailed", Messagecode = "417", Callerid = "yardillo", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "PUT", Callertype = "CASETYPE", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
+
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(ocasetype, oms));
 
             }
 
+
+        }
+        [HttpDelete]
+        public IActionResult Delete(string id)
+        {
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string sresponse = "";
+            try
+            {
+                srequest = id;
+                _casetypeservice.Gettenant(tenantid);
+                 _casetypeservice.Remove(id);
+
+                var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status200OK", Messagecode = "200", Callerid = id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "DELETE", Callertype = "CASETYPE", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, "");
+            }
+            catch (Exception ex)
+            {
+                var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status417ExpectationFailed", Messagecode = "417", Callerid = id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "DELETE", Callertype = "CASETYPE", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(null, oms));
+            }
         }
     }
 }

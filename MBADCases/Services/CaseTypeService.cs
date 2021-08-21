@@ -161,7 +161,7 @@ namespace MBADCases.Services
                 if (ocasetype.Createdate == null) { ocasetype.Createdate = DateTime.UtcNow.ToString(); }
                 if (ocasetype.Updatedate == null) { ocasetype.Updatedate = DateTime.UtcNow.ToString(); }
 
-                _casetypecollection.InsertOneAsync(ocasetype);
+                _casetypecollection.InsertOne(ocasetype);
                 return ocasetype;
             }
             catch
@@ -177,6 +177,15 @@ namespace MBADCases.Services
             {
                 _casetypecollection.ReplaceOne(ocase => ocase._id == id, CaseTypeIn);
                
+            }
+            catch { throw; }
+        }
+        public void Remove(string id)
+        {
+            try
+            {
+                _casetypecollection.DeleteOne(c => c._id == id);
+
             }
             catch { throw; }
         }

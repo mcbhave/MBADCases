@@ -16,8 +16,12 @@ namespace MBADCases.Models
 
         public string Dbconnection { get; set; }
         public string Rapidapikey { get; set; }
+
+        public string Rapidhost { get; set; }
+
+        public string Rapidsubscription { get; set; }
         public MessageResponse Message { get; set; }
-               
+        public string YAuthSource { get; set; }
 
     }
 }

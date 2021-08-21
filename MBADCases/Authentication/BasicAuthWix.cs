@@ -115,7 +115,7 @@ namespace MBADCases.Authentication
                                         _tenantcoll = MBADDatabase.GetCollection<Tenant>("Tenants");
                                         Tenant ot = _tenantcoll.Find(t => t.Tenantname.ToUpper() == stenant.ToUpper()).FirstOrDefault();
                                         if (ot != null)
-                                        {
+                                        { 
                                             context.HttpContext.Session.SetString("mbadtanent", ot.Tenantname);
 
                                             //all good
@@ -134,6 +134,8 @@ namespace MBADCases.Authentication
                                                 ousr.Source = "Wiki";
                                                 ousr.Type = stype;
                                                 ousr.Role = role;
+                                                ousr.RapidAPIkey = ot.Rapidapikey;
+                                                ousr.Installationid = installationId;
                                                 _tenantusercoll.InsertOne(ousr);
                                             }
 
@@ -143,18 +145,21 @@ namespace MBADCases.Authentication
                                         else
                                         {
                                             omess.MessageDesc = "Invalid Tenant";
-                                            allpass = false;
+                                                omess.Messageype = "Unauthorized";
+                                                allpass = false;
                                         }
                                     }
                                     else
                                     {
                                         omess.MessageDesc = "Invalid Body Request";
-                                        allpass = false;
+                                            omess.Messageype = "Unauthorized";
+                                            allpass = false;
                                     }
                                     }
                                     else
                                     {
                                         omess.MessageDesc = "Invalid Body Request";
+                                        omess.Messageype = "Unauthorized";
                                         allpass = false;
                                     }
                                 }

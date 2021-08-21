@@ -27,6 +27,11 @@ namespace MBADCases.Models
     }
     public class Casetypefield
     {
+        public Casetypefield()
+        {
+            Options = new List<Option>();
+            Type = "TEXT";
+        }
         public string Fieldid { get; set; }
         public string Fieldname { get; set; }
         public int Seq { get; set; }
@@ -34,6 +39,7 @@ namespace MBADCases.Models
         public string message { get; set; }
         public string Value { get; set; }
         public List<Option> Options { get; set; }
+        public string Type { get; set; }
         public int CompareTo(Casetypefield compareSeq)
         {
             // A null value means that this object is greater.
