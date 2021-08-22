@@ -28,7 +28,7 @@ namespace MBADCases.Models
         public string Updatedate { get; set; }
         public string Updateuser { get; set; }
         //public string Sladate { get; set; }
-
+        public string itemId { get; set; }
         public List<CaseDBfield> Fields { get; set; }
         //public List<CaseActivity> Activities { get; set; }
 

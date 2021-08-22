@@ -85,10 +85,11 @@ namespace MBADCases.Services
                                 case "casetype":
                                     clauses.Add(ofd.Eq("Casetype", filenameQuery));
                                     break;
-                                case "casestatus":
-                                       
+                                case "itemid":
+                                    clauses.Add(ofd.Eq("itemId", filenameQuery));
+                                    break;
+                                case "casestatus":                                 
                                     clauses.Add(ofd.Eq("Casestatus", filenameQuery)); // "{'$regex' : 'Open', '$options' : 'i'}"
-
                                     break;
                                 case "currentactivityid":
                                     clauses.Add(ofd.Eq("Currentactivityid", filenameQuery));
@@ -263,7 +264,7 @@ namespace MBADCases.Services
                     oct= octsr.Create(ocasedb.Casetype, oct);
                 }
 
-                
+                if (oct.Activities != null) { 
                 IComparer<Activity> comparer = new MyActivityOrder();
                 oct.Activities.Sort(comparer);
                 foreach (Activity odact in oct.Activities)
@@ -464,6 +465,8 @@ namespace MBADCases.Services
                     }
 
                 }
+                }
+
                 if (caseclosed)
                 {
                     ocasedb.Casestatus = "Closed";

@@ -84,6 +84,8 @@ namespace MBADCases.Models
            
             public dynamic item  { get; set; }
 
+            public string itemId { get; set; }
+
         }
 
        

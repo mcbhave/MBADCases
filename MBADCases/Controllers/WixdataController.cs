@@ -38,40 +38,17 @@ namespace MBADCases.Controllers
             try
             {
                 srequest= oid.ToString();
-                 WixDB.data id = Newtonsoft.Json.JsonConvert.DeserializeObject<WixDB.data>(oid.ToString());
-                 string js = Newtonsoft.Json.JsonConvert.SerializeObject(id.item);
-                 var oitm =  Newtonsoft.Json.JsonConvert.DeserializeObject<Case>(js);
-                 DataItem<WixCase> oi = new DataItem<WixCase>();
-               List< DataItem<object>> od = new List<DataItem<object>>();
-                foreach (Case c in _cases.Searchcases("Casetype=" + id.collectionName))
-                {
-                    DataItem<WixCase> o = new DataItem<WixCase>();
-                    o.item._id = c._id;
-                    o.item._owner = c.Createuser;
-                    o.item.casetitle = c.Casetitle;
-                    o.item.casetype = c.Casetype;
-                    o.item.casestatus = c.Casestatus;
-                    o.item.currentactivityid = c.Currentactivityid;
-                    o.item.currentactionid = c.Currentactionid;
-                    o.item.casedescription = c.Casedescription;
-                    o.item.createdate = c.Createdate;
-                    o.item.createuser = c.Createuser;
-                    o.item.updatedate = c.Updatedate;
-                    o.item.updateuser = c.Updateuser;
-                    string oitem=  Newtonsoft.Json.JsonConvert.SerializeObject(o);
-                 
-                    JObject job = JObject.Parse(oitem);
-                    var comparer = new MyCaseFieldOrder();
-                     c.Fields.Sort(comparer);
-                    foreach (Casefield f in c.Fields)
-                    { 
-                        job.Add(f.Fieldid, f.Value);
-                    }
-                    od.Add(job);
-                  }
-                                            
-                sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(od);
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, od);
+                WixDB.data id = Newtonsoft.Json.JsonConvert.DeserializeObject<WixDB.data>(oid.ToString());
+
+                // var oitm =  Newtonsoft.Json.JsonConvert.DeserializeObject<Case>(js);
+
+
+                Case ocase = new Case();
+                ocase.Casetype = id.collectionName;
+                // ocase.item = id.itemId;
+                _cases.Create(ocase);
+                sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(ocase);
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, null);
 
             }
             catch (Exception ex)
@@ -99,14 +76,31 @@ namespace MBADCases.Controllers
             string sresponse = "";
             try
             {
-                srequest= sid.ToString();
-               WixDB.data id = Newtonsoft.Json.JsonConvert.DeserializeObject<WixDB.data>(sid.ToString());
                 _cases.Gettenant(tenantid);
-                string js = Newtonsoft.Json.JsonConvert.SerializeObject(id.item);
-                var oitm = Newtonsoft.Json.JsonConvert.DeserializeObject<Case>(js);
-                               
-                DataItem<Case> oi = new DataItem<Case>();
-                oi.item = _cases.Get(oitm._id);
+
+                srequest = sid.ToString();
+               WixDB.data id = Newtonsoft.Json.JsonConvert.DeserializeObject<WixDB.data>(sid.ToString());
+                                               
+                DataItem<WixCase> oi = new DataItem<WixCase>();
+                
+                  var  ocase = new Case() { Casetype = id.collectionName, itemId=id.itemId };
+                   var c = _cases.Create(ocase);
+                    WixCase owix = new WixCase();
+                    owix.casedescription = c.Casedescription;
+                    owix._id = c.itemId;
+                    owix._owner = c.Createuser;
+                    owix.casestatus = c.Casestatus;
+                    owix.casetitle = c.Casetitle;
+                    owix.casetype = c.Casetype;
+                    owix.createdate = c.Createdate;
+                    owix.createuser = c.Createuser;
+                    owix.currentactionid = c.Currentactionid;
+                    owix.currentactivityid = c.Currentactivityid;
+                    owix.updatedate = c.Updatedate;
+                    owix.updateuser = c.Updateuser;
+                    oi.item = owix;
+                
+               
                 sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(oi);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oi);
 
@@ -115,13 +109,13 @@ namespace MBADCases.Controllers
             }
             catch (Exception ex)
             {
-                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix dataItem", Messageype = "ERROR", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix datagetItem", Messageype = "ERROR", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
 
                 throw;
             }
             finally
             {
-                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix dataItem", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix datagetItem", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
             }
 
 
@@ -189,13 +183,13 @@ namespace MBADCases.Controllers
             }
             catch (Exception ex)
             {
-                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix data", Messageype = "ERROR", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix data find", Messageype = "ERROR", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
 
                 throw;
             }
             finally
             {
-                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix data", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+                _cases.SetMessage(new Message() { Callerid = "Wix", Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = scasetypes, Callertype = "Wix data find", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
             }
         }
 
@@ -212,14 +206,63 @@ namespace MBADCases.Controllers
             string sresponse = "";
             try
             {
-                srequest= Newtonsoft.Json.JsonConvert.SerializeObject(id);
-                DataItem<item> oi = new DataItem<item>();
-                WixDB.item oitem = new WixDB.item();// { _id = Guid.NewGuid().ToString(), _owner = Guid.NewGuid().ToString(), model = "Camry" };
-           
-                oi.item = oitem;
-                sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(oitem);
+                _cases.Gettenant(tenantid);
 
+                srequest = Newtonsoft.Json.JsonConvert.SerializeObject(id);
+                WixDB.data sid = Newtonsoft.Json.JsonConvert.DeserializeObject<WixDB.data>(srequest);
+
+                string js = Newtonsoft.Json.JsonConvert.SerializeObject(sid.item);
+                Case oc = Newtonsoft.Json.JsonConvert.DeserializeObject<Case>(js);
+
+                DataItem<WixCase> oi = new DataItem<WixCase>();
+
+                var ocase = _cases.Searchcases("itemId=" + oc._id).FirstOrDefault();
+
+                if (oc != null)
+                {
+                     
+                    if (ocase.Casetitle != null && ocase.Casetitle.ToLower() != oc.Casetitle.ToLower()) { oc.Casetitle = ocase.Casetitle; }
+                    if (ocase.Casenumber != 0 && ocase.Casenumber != oc.Casenumber) { oc.Casenumber = ocase.Casenumber; }
+                    if (ocase.Casedescription != null && ocase.Casedescription.ToLower() != oc.Casedescription.ToLower()) { oc.Casedescription = ocase.Casedescription; }
+                    if (ocase.Casestatus != null && ocase.Casestatus.ToLower() != oc.Casestatus.ToLower()) { oc.Casestatus = ocase.Casestatus; }
+                    if (ocase.Casetype != null && ocase.Casetype.ToLower() != oc.Casetype.ToLower()) { oc.Casetype = ocase.Casetype; }
+                   // if (ocase.Currentactionid != null && ocase.Currentactionid.ToLower() != oc.Currentactionid.ToLower()) { oc.Currentactionid = ocase.Currentactionid; }
+                   // if (ocase.Currentactivityid != null && ocase.Currentactivityid.ToLower() != oc.Currentactivityid.ToLower()) { oc.Currentactivityid = ocase.Currentactivityid; }
+                    Casefield tmpf = null;
+                    foreach (Casefield f in ocase.Fields)
+                    {
+                        tmpf = oc.Fields.Find(fo => fo.Fieldid.ToLower() == f.Fieldid.ToLower());
+                        if (tmpf != null)
+                        {
+                            if (f.Value != null && f.Value.ToLower() != tmpf.Value.ToLower()) { tmpf.Value = f.Value; }
+                           
+                        }
+
+                    }
+                      _cases.Update(ocase._id, ocase);
+
+                    WixCase wcase = new WixCase();
+                    //job.Add("Casedescription", c.Casedescription);
+
+                    wcase.casedescription = ocase.Casedescription;
+                    wcase._id = ocase.itemId;
+                    wcase._owner = ocase.Createuser;
+                    wcase.casestatus = ocase.Casestatus;
+                    wcase.casetitle = ocase.Casetitle;
+                    wcase.casetype = ocase.Casetype;
+                    wcase.createdate = ocase.Createdate;
+                    wcase.createuser = ocase.Createuser;
+                    wcase.currentactionid = ocase.Currentactionid;
+                    wcase.currentactivityid = ocase.Currentactivityid;
+                    wcase.updatedate = ocase.Updatedate;
+                    wcase.updateuser = ocase.Updateuser;
+
+                    oi.item = wcase;
+                }
+
+                sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(oi);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, oi);
+   
             }
             catch (Exception ex)
             {

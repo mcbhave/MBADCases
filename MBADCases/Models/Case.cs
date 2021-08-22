@@ -32,7 +32,7 @@ namespace MBADCases.Models
         public List<Casefield> Fields { get; set; }
         public List<CaseActivity> Activities { get; set; }
         public MessageResponse Message { get; set; }
-
+        public string itemId { get; set; }
     }
     
     public class CaseActivity
