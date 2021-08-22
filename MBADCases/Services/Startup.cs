@@ -16,6 +16,8 @@ using MBADCases.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Serialization;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 
 namespace MBADCases
 {
@@ -87,6 +89,13 @@ namespace MBADCases
             {
                 app.UseDeveloperExceptionPage();
             }
+            //app.UseStaticFiles();
+            //app.UseDirectoryBrowser(new DirectoryBrowserOptions
+            //{
+            //    FileProvider = new PhysicalFileProvider(
+            //    Path.Combine(Directory.GetCurrentDirectory(), "images")),
+            //    RequestPath = "/images"
+            //});
 
             app.UseHttpsRedirection();
 

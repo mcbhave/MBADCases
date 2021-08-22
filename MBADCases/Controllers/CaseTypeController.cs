@@ -140,7 +140,7 @@ namespace MBADCases.Controllers
                 srequest = filter;
                 _casetypeservice.Gettenant(tenantid);
                 if (filter.ToLower() == "all") { filter = ""; }
-                List<CaseType> ocase = _casetypeservice.Searchcases(filter);
+                List<CaseType> ocase = _casetypeservice.Searchcases(filter,true);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
 
             }
@@ -165,7 +165,10 @@ namespace MBADCases.Controllers
             {
                 srequest = Newtonsoft.Json.JsonConvert.SerializeObject(ocasetype);
                 _casetypeservice.Gettenant(tenantid);
-               
+                ocasetype.Createuser = usrid;
+                ocasetype.Updateuser = usrid;
+                ocasetype.Createdate = DateTime.UtcNow.ToString();
+                ocasetype.Updatedate = DateTime.UtcNow.ToString();
                 var oretcase = _casetypeservice.Create(CaseTypeName,ocasetype);
 
                 sresponse = Newtonsoft.Json.JsonConvert.SerializeObject(oretcase);

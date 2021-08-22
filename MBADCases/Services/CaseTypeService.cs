@@ -58,13 +58,13 @@ namespace MBADCases.Services
             try{ return _casetypecollection.Find<CaseType>(book => book.Casetype.ToLower() == name.ToLower()).FirstOrDefault(); } catch { throw; };
         }
 
-        public List<CaseType> Searchcases(string sfilter)
+        public List<CaseType> Searchcases(string sfilter, bool bLocal)
         {
             IMongoCollection<Tenant> _tenantcoll = MBADDatabase.GetCollection<Tenant>("Tenants");
             Tenant tenant = _tenantcoll.Find(t => t.Tenantname.ToLower() == _tenantid.ToLower()).FirstOrDefault();
            string rapidkey= tenant.Rapidapikey;
 
-            if(rapidkey!=null && rapidkey != "")
+            if(rapidkey!=null && rapidkey != "" && bLocal==false)
             {
 
                 var client = new HttpClient();
@@ -136,8 +136,7 @@ namespace MBADCases.Services
                     throw;
                 }
             }
-
-            return new List<CaseType>();
+ 
         }
         public CaseType Create(string CaseTypeName,CaseType ocasetype)
         {
@@ -148,8 +147,8 @@ namespace MBADCases.Services
                 if (c != null) { ocasetype = c; return ocasetype; }
                 if (ocasetype.Casetype != CaseTypeName) { ocasetype.Casetype = CaseTypeName; }
                 //if (ocasetype.Updateuser == null) { ocasetype.Updateuser = createuserid; }
-                if (ocasetype.Createdate == null) { ocasetype.Createdate = DateTime.UtcNow.ToString(); }
-                if (ocasetype.Updatedate == null) { ocasetype.Updatedate = DateTime.UtcNow.ToString(); }
+                if (ocasetype.Createdate == null || ocasetype.Createdate=="") { ocasetype.Createdate = DateTime.UtcNow.ToString(); }
+                if (ocasetype.Updatedate == null || ocasetype.Createdate == "") { ocasetype.Updatedate = DateTime.UtcNow.ToString(); }
 
                 _casetypecollection.InsertOne(ocasetype);
                 return ocasetype;

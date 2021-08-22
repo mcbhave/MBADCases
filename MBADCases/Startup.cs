@@ -15,6 +15,8 @@ using Microsoft.Extensions.Options;
 using MBADCases.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 
 namespace MBADCases
 {
@@ -30,6 +32,9 @@ namespace MBADCases
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+         
+
             services.AddMvc(setupAction =>
             {
                 setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status200OK));
@@ -41,7 +46,7 @@ namespace MBADCases
 
 
             });
-
+            
             services.AddDistributedMemoryCache();
             services.AddSession(options => {
                 options.IdleTimeout = TimeSpan.FromMinutes(1);//You can set Time   
@@ -77,6 +82,12 @@ namespace MBADCases
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseDirectoryBrowser(new DirectoryBrowserOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+             Path.Combine(Directory.GetCurrentDirectory(), "images")),
+                RequestPath = "/images"
+            });
 
             app.UseHttpsRedirection();
 
