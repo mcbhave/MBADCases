@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using MBADCases.Models;
 using Microsoft.AspNetCore.Http;
@@ -59,95 +60,84 @@ namespace MBADCases.Services
 
         public List<CaseType> Searchcases(string sfilter)
         {
+            IMongoCollection<Tenant> _tenantcoll = MBADDatabase.GetCollection<Tenant>("Tenants");
+            Tenant tenant = _tenantcoll.Find(t => t.Tenantname.ToLower() == _tenantid.ToLower()).FirstOrDefault();
+           string rapidkey= tenant.Rapidapikey;
 
-            FilterDefinition<BsonDocument> oFilterDoc;
-            FilterDefinitionBuilder<BsonDocument> ofd = new FilterDefinitionBuilder<BsonDocument>();
-            var clauses = new List<FilterDefinition<BsonDocument>>();
-            //var ofd = Builders<BsonDocument>.Filter;
-            string scasetype = string.Empty;
-            List<BsonDocument> colC = new List<BsonDocument>();
-            //IDictionary<string, string> sdir = new Dictionary<string, string>(); ;
-            if (sfilter == "")
+            if(rapidkey!=null && rapidkey != "")
             {
-                oFilterDoc = ofd.And(ofd.Ne("Casetype", ""));
+
+                var client = new HttpClient();
+                  
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+         
+                    RequestUri = new Uri("https://mongodb-wix.p.rapidapi.com/case/Casetype=" + sfilter),
+                    Headers =
+                                {
+                                    { "x-rapidapi-host", "mongodb-wix.p.rapidapi.com" },
+                                    { "x-rapidapi-key", rapidkey },
+                                },
+                            };
+                    using (var response = client.SendAsync(request).GetAwaiter().GetResult())
+                    {
+                        response.EnsureSuccessStatusCode();
+                        var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                        if (body != null)
+                        {
+                            List<CaseType> oretcase = Newtonsoft.Json.JsonConvert.DeserializeObject<List<CaseType>>(body);
+                            return oretcase;
+                        }
+                        else
+                        {
+                            List<CaseType> oretcase = new List<CaseType>();
+                            return oretcase;
+                        }
+                    }
             }
             else
             {
-                oFilterDoc = ofd.And(ofd.Eq("Casetype", sfilter));
-            }
-            try
-            {
-                //if (sfilter != null || sfilter != "")
-                //{
-                //    var sfl = sfilter.Split("&");
-                //    foreach (string s in sfl)
-                //    {
-                //        var sparam = s.Split("=");
-                //        if (sparam.Length == 2)
-                //        {
-                //            var filenameQuery = new BsonRegularExpression(sparam[1].ToString(), "i");
-                //            switch (sparam[0].ToString().ToLower())
-                //            {
-                //                case "casetype":
-                //                    clauses.Add(ofd.Eq("Casetype", filenameQuery));
-                //                    break;
-                //                case "casestatus":
-
-                //                    clauses.Add(ofd.Eq("Casestatus", filenameQuery)); // "{'$regex' : 'Open', '$options' : 'i'}"
-
-                //                    break;
-                //                case "currentactivityid":
-                //                    clauses.Add(ofd.Eq("Currentactivityid", filenameQuery));
-                //                    break;
-                //                case "createdate":
-                //                    clauses.Add(ofd.Eq("Createdate", filenameQuery));
-                //                    break;
-                //                case "createuser":
-                //                    clauses.Add(ofd.Eq("Createuser", filenameQuery));
-                //                    break;
-                //                case "updatedate":
-                //                    clauses.Add(ofd.Eq("Updatedate", filenameQuery));
-                //                    break;
-                //                case "updateuser":
-                //                    clauses.Add(ofd.Eq("Updateuser", filenameQuery));
-                //                    break;
-                //                default:
-                //                    clauses.Add(ofd.ElemMatch<BsonValue>(
-                //                                   "Fields", new BsonDocument
-                //                                               { { "Fieldid", new BsonRegularExpression(sparam[0].ToString(), "i") },
-                //                                                                    { "Value", new BsonDocument { { "$eq", sparam[1].ToString() } } }
-                //                                               }));
-                //                    break;
-                //            };
-                //        }
-                //    }
-                //    if(clauses!=null & clauses.Count > 0)
-                //    {
-                //        oFilterDoc = ofd.And(clauses);
-                //    }
-                   
-                //}
-
-             
-                colC = _casetypecollectionlist.Find(oFilterDoc).ToList();
-
-                List<CaseType> oretcase = new List<CaseType>();
-                if (colC != null)
+                FilterDefinition<BsonDocument> oFilterDoc;
+                FilterDefinitionBuilder<BsonDocument> ofd = new FilterDefinitionBuilder<BsonDocument>();
+                var clauses = new List<FilterDefinition<BsonDocument>>();
+                //var ofd = Builders<BsonDocument>.Filter;
+                string scasetype = string.Empty;
+                List<BsonDocument> colC = new List<BsonDocument>();
+                //IDictionary<string, string> sdir = new Dictionary<string, string>(); ;
+                if (sfilter == "")
+                {
+                    oFilterDoc = ofd.And(ofd.Ne("Casetype", ""));
+                }
+                else
+                {
+                    oFilterDoc = ofd.And(ofd.Eq("Casetype", sfilter));
+                }
+                try
                 {
 
-                    foreach (BsonDocument b in colC)
+                    colC = _casetypecollectionlist.Find(oFilterDoc).ToList();
+
+                    List<CaseType> oretcase = new List<CaseType>();
+                    if (colC != null)
                     {
-                        CaseType ocas = BsonSerializer.Deserialize<CaseType>(b.ToJson());
-                        oretcase.Add(ocas);
+
+                        foreach (BsonDocument b in colC)
+                        {
+                            CaseType ocas = BsonSerializer.Deserialize<CaseType>(b.ToJson());
+                            oretcase.Add(ocas);
+                        }
                     }
-                }
 
                     return oretcase;
+                }
+                catch
+                {
+                    throw;
+                }
             }
-            catch
-            {
-                throw;
-            }
+
+            return new List<CaseType>();
         }
         public CaseType Create(string CaseTypeName,CaseType ocasetype)
         {
