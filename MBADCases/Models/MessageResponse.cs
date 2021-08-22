@@ -10,6 +10,7 @@ namespace MBADCases.Models
         public string _id { get; set; }
         public string Messageype { get; set; }
         public string Messagecode { get; set; }
+        public string Messagedesc { get; set; }
         //public string Messagedate { get; set; }
     }
     

@@ -68,7 +68,8 @@ namespace MBADCases.Services
             string scasetype=string.Empty;
             List<BsonDocument> colC = new List<BsonDocument>();
             //IDictionary<string, string> sdir = new Dictionary<string, string>(); ;
-            oFilterDoc = ofd.Eq("Casestatus", scasetype);
+            //oFilterDoc = ofd.Eq("Casestatus", scasetype);
+            oFilterDoc = ofd.Ne("Casetype", "");
             try
             {
                 if(sfilter!=null || sfilter != "")
@@ -574,17 +575,12 @@ namespace MBADCases.Services
             return oms;
 
         }
-        public void SetMessage(Message oms)
+        public Message SetMessage(Message oms)
         {
 
-            
             MessageService omesssrv = new MessageService(_settings, TenantDatabase, MBADDatabase);
             oms = omesssrv.Create(oms);
-
-           
-
+            return oms;
         }
-
-
     }
 }

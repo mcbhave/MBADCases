@@ -119,14 +119,11 @@ namespace MBADCases.Controllers
                 var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status200OK", Messagecode = "200", Callerid = ocasetype._id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "POST", Callertype = "CASETYPE", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
 
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseTypeResponse(ocasetype, oms));
-
             }
             catch (Exception ex)
             {
                 var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status417ExpectationFailed", Messagecode = "417", Callerid = id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "POST", Callertype = "CASETYPE", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
-
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(ocasetype, oms));
-
             }
         }
 
@@ -182,10 +179,8 @@ namespace MBADCases.Controllers
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseTypeResponse(ocasetype, oms));
 
             }
-
-
         }
-        [HttpDelete]
+        [HttpDelete("{id:length(24)}")]
         public IActionResult Delete(string id)
         {
             string usrid = HttpContext.Session.GetString("mbaduserid");
@@ -200,7 +195,7 @@ namespace MBADCases.Controllers
                  _casetypeservice.Remove(id);
 
                 var oms = _casetypeservice.SetMessage(new Message() { Messageype = "Status200OK", Messagecode = "200", Callerid = id, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "DELETE", Callertype = "CASETYPE", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, "");
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseTypeResponse(null, oms));
             }
             catch (Exception ex)
             {

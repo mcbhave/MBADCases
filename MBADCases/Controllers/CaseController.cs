@@ -224,7 +224,7 @@ namespace MBADCases.Controllers
         }
 
         // DELETE api/<CaseController>/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:length(24)}")]
         public IActionResult Delete(string id)
         {
             Message oms;
@@ -247,6 +247,37 @@ namespace MBADCases.Controllers
                 oms = _caseservice.SetMessage(ICallerType.CASE, id, id, "DELETE", "200", "Case delete", usrid, ex);
                  return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(ocase._id, oms));
 
+            }
+        }
+        
+        [HttpDelete("{Casetype}/{filter}")]
+        public IActionResult SearchAndDelete(string Casetype,string filter)
+        {
+            string usrid = HttpContext.Session.GetString("mbaduserid");
+            string tenantid = HttpContext.Session.GetString("mbadtanent");
+            string srequest = "";
+            string smessage = "";
+            string sresponse = "";
+            try
+            {
+                _caseservice.Gettenant(tenantid);
+
+                List<Case> cases = _caseservice.Searchcases("Casetype=" + Casetype + "&" + filter);
+
+
+                foreach (Case c in cases)
+                {
+                    _caseservice.Remove(c._id);
+                }
+
+                var oms = _caseservice.SetMessage(new Message() { Messageype = "Status200OK", Messagecode = "200", Callerid = filter, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "POST", Callertype = "CASETYPE", MessageDesc = smessage, Tenantid = tenantid, Userid = usrid });
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, new CaseResponse(null, oms));
+                
+            }
+            catch (Exception ex)
+            {
+                var oms = _caseservice.SetMessage(new Message() { Messageype = "Status417ExpectationFailed", Messagecode = "417", Callerid = filter, Callerrequest = srequest, Callresponse = sresponse, Callerrequesttype = "POST", Callertype = "CASETYPE", MessageDesc = smessage + " " + ex.ToString(), Tenantid = tenantid, Userid = usrid });
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, new CaseResponse(null, oms));
             }
         }
     }
