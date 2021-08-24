@@ -160,7 +160,7 @@ namespace MBADCases.Authentication
                             IMongoCollection<Tenant> _tenantcoll;
                             _tenantcoll = MBADDatabase.GetCollection<Tenant>("Tenants");
                             Tenant oten = new Tenant();
-                            oten.Tenantname = rapiduserid + "_" + helperservice.RandomString(7, false); ;
+                            oten.Tenantname = "TENANT" + "_" + helperservice.RandomString(7, false); ;
                             oten.Tenantdesc = rapiduserid;
                             oten.Createdate = DateTime.UtcNow.ToString();
                             oten.Createuser = rapiduserid;
@@ -169,15 +169,15 @@ namespace MBADCases.Authentication
                             oten.Rapidhost = xrapidhost;
                             //set the rapid key for the first user who creates the tenant. Use this key for all calls
                             oten.Rapidapikey = srapidapikey;
-                            string snewtenname = rapiduserid.ToUpper();
+                            string snewtenname = oten.Tenantname.ToUpper();
                             //tenant names are uniqe in entire yardillo
                             if (_tenantcoll.Find<Tenant>(book => book.Tenantname.ToUpper() == snewtenname.ToUpper()).FirstOrDefault() != null)
                             {
-                                snewtenname = rapiduserid + "_" + helperservice.RandomString(7, false);
+                                snewtenname = "TENANT" + "_" + helperservice.RandomString(7, false);
                                 while (_tenantcoll.Find<Tenant>(book => book.Tenantname.ToUpper() == snewtenname.ToUpper()).FirstOrDefault() != null)
                                 {
                                     //name must be unique assing a random string
-                                    snewtenname = rapiduserid + "_" + helperservice.RandomString(7, false);
+                                    snewtenname = "TENANT" + "_" + helperservice.RandomString(7, false);
                                 }
                                 oten.Tenantname = snewtenname;
                             };
