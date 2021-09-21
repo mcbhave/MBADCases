@@ -23,6 +23,7 @@ namespace MBADCases.Models
         public string Body { get; set; }
         public string Name { get; set; }
         public MessageResponse Message { get; set; }
+      
 
     }
 

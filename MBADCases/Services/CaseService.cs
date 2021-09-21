@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using MBADCases.Models;
@@ -121,6 +122,7 @@ namespace MBADCases.Services
                     }
                 }
 
+                CaseTypeService octsr = new CaseTypeService(_casetypecollection);
                 oFilterDoc = ofd.And(clauses);
               colC = _casecollectionlist.Find(oFilterDoc ).ToList();
                 List<Case> oretcase = new List<Case>();
@@ -130,6 +132,7 @@ namespace MBADCases.Services
                     foreach (BsonDocument b in colC)
                     {
                         Case ocas = BsonSerializer.Deserialize<Case>(b.ToJson());
+                        ocas= Get(ocas._id);
                         oretcase.Add(ocas);
                     }
                 }
@@ -140,7 +143,51 @@ namespace MBADCases.Services
                 throw;
             }
         }
-        
+        public List<Case> SearchcasesfromRapidapi(string sfilter)
+        {
+            IMongoCollection<Tenant> _tenantcoll = MBADDatabase.GetCollection<Tenant>("Tenants");
+            Tenant tenant = _tenantcoll.Find(t => t.Tenantname.ToLower() == _tenantid.ToLower()).FirstOrDefault();
+            string rapidkey = tenant.Rapidapikey;
+
+            if (rapidkey != null && rapidkey != "")
+            {
+
+                var client = new HttpClient();
+
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+
+                    RequestUri = new Uri("https://mongodb-wix.p.rapidapi.com/case/" + sfilter),
+                    Headers =
+                                {
+                                    { "x-rapidapi-host", "mongodb-wix.p.rapidapi.com" },
+                                    { "x-rapidapi-key", rapidkey },
+                                },
+                };
+                using (var response = client.SendAsync(request).GetAwaiter().GetResult())
+                {
+                    response.EnsureSuccessStatusCode();
+                    var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    if (body != null)
+                    {
+                        List<Case> oretcase = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Case>>(body);
+                        return oretcase;
+                    }
+                    else
+                    {
+                        List<Case> oretcase = new List<Case>();
+                        return oretcase;
+                    }
+                }
+            }
+            else
+            {
+                return Searchcases(sfilter);
+            }
+
+        }
+
         public Case Get(string id) {
             try { 
                 Case ocase= _casecollection.Find<Case>(book => book._id == id).FirstOrDefault();
@@ -159,7 +206,7 @@ namespace MBADCases.Services
                     oct = octsr.Create(ocase.Casetype, oct);
                 }
                 Activity oCurrentActivity;
-                if (ocase.Currentactivityid != null || ocase.Currentactivityid!="") 
+                if (ocase.Currentactivityid != null && ocase.Currentactivityid!="") 
                 { 
                     oCurrentActivity = oct.Activities.Where(f => f.Activityid == ocase.Currentactivityid).FirstOrDefault();
                     if (oCurrentActivity != null)
@@ -222,9 +269,25 @@ namespace MBADCases.Services
                                 f.Required = cf.Required;
                                 f.Seq = cf.Seq;
                                 f.Options = cf.Options;
+                                f.Type = cf.Type;
                             }
                         }
                     }
+                }
+
+                if (oct.Fields != null) { 
+                foreach (Casefield f in ocase.Fields)
+                {
+                    Casetypefield cf = oct.Fields.Where(fl => fl.Fieldid == f.Fieldid).FirstOrDefault();
+                    if (cf != null)
+                    {
+                        f.Fieldname = cf.Fieldname;
+                        f.Required = cf.Required;
+                        f.Seq = cf.Seq;
+                        f.Options = cf.Options;
+                        f.Type = cf.Type;
+                    }
+                }
                 }
                 //get top one that is not yet complete
                 //if (colact != null)
@@ -468,6 +531,7 @@ namespace MBADCases.Services
                 }
                 }
 
+              
                 if (caseclosed)
                 {
                     ocasedb.Casestatus = "Closed";
@@ -494,8 +558,9 @@ namespace MBADCases.Services
         }
         public void Update1(string id,Case CaseIn) 
         {
-            try { 
-            foreach (Casefield csat in CaseIn.Fields)
+            try {
+            https://wimsupapp.bubbleapps.io/version-test/api/1.1/obj/mpclubusers
+                foreach (Casefield csat in CaseIn.Fields)
             {
                 var arrayFilter = Builders<BsonDocument>.Filter.Eq("_id", new ObjectId(id))
                         & Builders<BsonDocument>.Filter.Eq("Fields.Fieldid", csat.Fieldid);

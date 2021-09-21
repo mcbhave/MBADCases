@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using MBADCases.Services;
 using MongoDB.Driver;
@@ -40,6 +41,15 @@ namespace MBADCases.Models
                 return _Adapterscollection.Find<Adapter>(book => book._id == id).FirstOrDefault();
                 
             } catch 
+            { throw; };
+        }
+        public List<Adapter> Get()
+        {
+            try
+            {                
+                return _Adapterscollection.Find<Adapter>(book => book.Name != null).ToList();
+            }
+            catch
             { throw; };
         }
         public Adapter GetByName(string name)

@@ -65,7 +65,7 @@ namespace MBADCases.Controllers
                 scasetypes = id.schemaIds.ToString();
                 foreach (string o in id.schemaIds)
                 {
-                    List<CaseType> oct = _casetypes.Searchcases(o,false);
+                    List<CaseType> oct = _casetypes.Searchcasetypes(o,false);
                     if (oct != null && oct.Count > 0)
                     {
                         WixDB.Schema osch = GetSchema(oct[0], 50, 3600);
@@ -109,7 +109,7 @@ namespace MBADCases.Controllers
                 List<WixDB.Schema> lsch = new List<WixDB.Schema>();
 
                 //get all case types
-                List<CaseType> oct = _casetypes.Searchcases("",false);
+                List<CaseType> oct = _casetypes.Searchcasetypes("all",false);
 
                 foreach (CaseType o in oct)
                 {

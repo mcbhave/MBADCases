@@ -140,7 +140,7 @@ namespace MBADCases.Controllers
                 srequest = filter;
                 _casetypeservice.Gettenant(tenantid);
                 if (filter.ToLower() == "all") { filter = ""; }
-                List<CaseType> ocase = _casetypeservice.Searchcases(filter,true);
+                List<CaseType> ocase = _casetypeservice.Searchcasetypes(filter,true);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
 
             }

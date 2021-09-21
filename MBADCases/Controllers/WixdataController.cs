@@ -141,7 +141,7 @@ namespace MBADCases.Controllers
                 DataItem<WixCase> oi = new DataItem<WixCase>();
                 // List<FindItems<JObject>> od = new List<FindItems<JObject>>();
                 List<JObject> o = new List<JObject>();
-                foreach (Case c in _cases.Searchcases("Casetype=" + id.collectionName))
+                foreach (Case c in _cases.SearchcasesfromRapidapi("Casetype=" + id.collectionName))
                 {
                     WixCase ocase = new WixCase();
                     //job.Add("Casedescription", c.Casedescription);

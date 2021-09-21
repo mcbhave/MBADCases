@@ -58,43 +58,43 @@ namespace MBADCases.Services
             try{ return _casetypecollection.Find<CaseType>(book => book.Casetype.ToLower() == name.ToLower()).FirstOrDefault(); } catch { throw; };
         }
 
-        public List<CaseType> Searchcases(string sfilter, bool bLocal)
+        public List<CaseType> Searchcasetypes(string sfilter, bool bLocal)
         {
             IMongoCollection<Tenant> _tenantcoll = MBADDatabase.GetCollection<Tenant>("Tenants");
             Tenant tenant = _tenantcoll.Find(t => t.Tenantname.ToLower() == _tenantid.ToLower()).FirstOrDefault();
-           string rapidkey= tenant.Rapidapikey;
+            string rapidkey = tenant.Rapidapikey;
 
-            if(rapidkey!=null && rapidkey != "" && bLocal==false)
+            if (rapidkey != null && rapidkey != "" && bLocal == false)
             {
 
                 var client = new HttpClient();
-                  
+
                 var request = new HttpRequestMessage
                 {
                     Method = HttpMethod.Get,
-         
-                    RequestUri = new Uri("https://mongodb-wix.p.rapidapi.com/case/Casetype=" + sfilter),
+
+                    RequestUri = new Uri("https://mongodb-wix.p.rapidapi.com/casetype/search/all"),
                     Headers =
                                 {
                                     { "x-rapidapi-host", "mongodb-wix.p.rapidapi.com" },
                                     { "x-rapidapi-key", rapidkey },
                                 },
-                            };
-                    using (var response = client.SendAsync(request).GetAwaiter().GetResult())
+                };
+                using (var response = client.SendAsync(request).GetAwaiter().GetResult())
+                {
+                    response.EnsureSuccessStatusCode();
+                    var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    if (body != null)
                     {
-                        response.EnsureSuccessStatusCode();
-                        var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                        if (body != null)
-                        {
-                            List<CaseType> oretcase = Newtonsoft.Json.JsonConvert.DeserializeObject<List<CaseType>>(body);
-                            return oretcase;
-                        }
-                        else
-                        {
-                            List<CaseType> oretcase = new List<CaseType>();
-                            return oretcase;
-                        }
+                        List<CaseType> oretcase = Newtonsoft.Json.JsonConvert.DeserializeObject<List<CaseType>>(body);
+                        return oretcase;
                     }
+                    else
+                    {
+                        List<CaseType> oretcase = new List<CaseType>();
+                        return oretcase;
+                    }
+                }
             }
             else
             {
@@ -105,7 +105,7 @@ namespace MBADCases.Services
                 string scasetype = string.Empty;
                 List<BsonDocument> colC = new List<BsonDocument>();
                 //IDictionary<string, string> sdir = new Dictionary<string, string>(); ;
-                if (sfilter == "")
+                if (sfilter == "" || sfilter.ToLower()=="all")
                 {
                     oFilterDoc = ofd.And(ofd.Ne("Casetype", ""));
                 }
@@ -135,9 +135,10 @@ namespace MBADCases.Services
                 {
                     throw;
                 }
-            }
- 
+            } 
+
         }
+        
         public CaseType Create(string CaseTypeName,CaseType ocasetype)
         {
             try
