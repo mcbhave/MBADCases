@@ -15,7 +15,7 @@ namespace Yardillofunctions
         [FunctionName("Function1")]
         public static async Task RunAsync([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, ILogger log)
         {
-            var srand = RandomString(5, true);
+             var srand = RandomString(5, true);
             var client = new HttpClient();
             var request = new HttpRequestMessage
             {

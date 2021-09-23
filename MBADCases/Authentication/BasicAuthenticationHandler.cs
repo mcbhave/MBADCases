@@ -1,88 +1,113 @@
-﻿using DnsClient.Internal;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Text;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
+using MBADCases.Services;
+using MBADCases.Models;
+using MongoDB.Driver;
 
 namespace MBADCases.Authentication
 {
-    public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    public class BasicAuthenticationHandler : Attribute, IAuthorizationFilter
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="logger"></param>
-        /// <param name="encoder"></param>
-        /// <param name="clock"></param>
-        public BasicAuthenticationHandler(
-            IOptionsMonitor<AuthenticationSchemeOptions> options,
-            ILoggerFactory logger,
-            UrlEncoder encoder,
-            ISystemClock clock
-            ) : base(options, (Microsoft.Extensions.Logging.ILoggerFactory) logger, encoder, clock)
-        {
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+        private readonly string _realm = string.Empty;
+
+
+        public BasicAuthenticationHandler()
         {
 
-            if (!Request.Headers.ContainsKey("Authorization"))
-            {
-                return Task.FromResult(AuthenticateResult.Fail("Missing Authorization header"));
-            }
-            string authHeader = Request.Headers["Authorization"];
-            AuthenticationHeaderValue authHeaderValue = AuthenticationHeaderValue.Parse(authHeader);
+ 
+        }
+
+        public void OnAuthorization(AuthorizationFilterContext context)
+        {
+            
+            Message omess = new Message();
+         
             try
             {
+                bool allpass = true;
 
+                string srapidsecretkey = context.HttpContext.Request.Headers["X-RapidAPI-Proxy-Secret"];
+                string rapiduserid = context.HttpContext.Request.Headers["X-RapidAPI-User"];
+                var ssubs = context.HttpContext.Request.Headers["X-RapidAPI-Subscription"];
+                string sauthsrc = context.HttpContext.Request.Headers["Y-Auth-Src"];
+                string srapidapikey = context.HttpContext.Request.Headers["x-rapidapi-key"];
 
-                if (authHeaderValue.Scheme.Equals(AuthenticationSchemes.Basic.ToString(), StringComparison.OrdinalIgnoreCase))
+                omess.Callertype = "Headers";
+                omess.Messagecode = "yardillo";
+                string sheaders = Newtonsoft.Json.JsonConvert.SerializeObject(context.HttpContext.Request.Headers);
+                omess.Headerrequest = sheaders;
+                omess.Userid = rapiduserid;
+                omess.YAuthSource = sauthsrc;
+
+                if (srapidsecretkey != "1f863a60-f3b6-11eb-bc3e-c3f329db9ee7" && srapidsecretkey != "6acc1280-fde1-11eb-b480-3f057f12dc26" && srapidsecretkey != "ade9f2f0-fe3e-11eb-8e8b-29cf15887162")
+                { allpass = false; omess.Messageype = "Unauthorized"; omess.Messagecode = "00001"; }
+
+               
+                if (allpass) { return; }
+
+                if (allpass)
                 {
-                    var credentials = Encoding.UTF8
-                                        .GetString(Convert.FromBase64String(authHeaderValue.Parameter ?? string.Empty))
-                                        .Split(':', 2);
-                    if (credentials.Length == 2)
+
+                    string authHeader = context.HttpContext.Request.Headers["Authorization"];
+                    if (authHeader != null)
                     {
-                        //if (credentials[0] == "6bc8cee0-a03e-430b-9711-420ab0d6a596" & credentials[1] == "sQLcN1LHLuu7MfK5On92lUEWajEBpEDc")
-                        if (credentials[0] == "demo" & credentials[1] == "demo")
+                        var authHeaderValue = AuthenticationHeaderValue.Parse(authHeader);
+                        if (authHeaderValue.Scheme.Equals(AuthenticationSchemes.Basic.ToString(), StringComparison.OrdinalIgnoreCase))
                         {
-                            //_appSettings.Value.Clientid = credentials[0];
-
-                            var claims = new[]
+                            var credentials = Encoding.UTF8
+                                                .GetString(Convert.FromBase64String(authHeaderValue.Parameter ?? string.Empty))
+                                                .Split(':', 2);
+                            if (credentials.Length == 2)
                             {
-                                        new Claim(ClaimTypes.NameIdentifier, "6bc8cee0-a03e-430b-9711-420ab0d6a596")
+                                //if (IsAuthorized(context, credentials[0], credentials[1]))
+                                //{
+                                //    return;
+                                context.HttpContext.Session.SetString("mbadtanent", credentials[0]);
 
-                                    };
-                            var identity = new ClaimsIdentity(claims, Scheme.Name);
-                            var principle = new ClaimsPrincipal(identity);
-                            var ticket = new AuthenticationTicket(principle, Scheme.Name);
-
-                            return Task.FromResult(AuthenticateResult.Success(ticket));
-
+                                return;
+                                //}
+                            }
                         }
-
                     }
-
                 }
-                return Task.FromResult(AuthenticateResult.Fail("Invalid Authorization header"));
 
+
+                ReturnUnauthorizedResult(context);
             }
-            catch
+            catch (FormatException e)
             {
-                return Task.FromResult(AuthenticateResult.Fail("Invalid Authorization header"));
+                omess.MessageDesc = "Unabel to validate user" + e.ToString();
+                // _messagemaster.InsertOneAsync(omess);
+                ReturnUnauthorizedResult(context);
+            }
+            finally
+            {
+                
             }
         }
+
+        //public bool IsAuthorized(AuthorizationFilterContext context, string username, string password)
+        //{
+        //    var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
+        //    return true;// userService.IsValidUser(username, password);
+        //}
+
+        private void ReturnUnauthorizedResult(AuthorizationFilterContext context)
+        {
+            // Return 401 and a basic authentication challenge (causes browser to show login dialog)
+            context.HttpContext.Response.Headers["WWW-Authenticate"] = $"Basic realm=\"{_realm}\"";
+            context.Result = new UnauthorizedResult();
+        }
     }
+     
 }
- 

@@ -17,6 +17,8 @@
     <PackageReference Include="MongoDB.Bson.Path" Version="1.0.5" />
     <PackageReference Include="MongoDB.Driver" Version="2.13.0" />
     <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.2" />
+    <PackageReference Include="TimeZoneConverter" Version="3.5.0" />
+    <PackageReference Include="Twilio" Version="5.65.2" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties data_4tenants_1json__JsonSchema="https://appsemble.app/api.json" /></VisualStudio></ProjectExtensions>
