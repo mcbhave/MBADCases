@@ -34,7 +34,7 @@ namespace MBADCases.Controllers
         private const string _BubbleAPIUserUrl = "https://alittlemore.love/version-test/api/1.1/obj/User";
         private const string _BubbleAPIMessagesUrl = "https://alittlemore.love/version-test/api/1.1/obj/messages";
         private const string _postmark_fromemail = "info@alittlemore.love.com";
-        private const string _postmark_server_token = "69972700-ccae-45c5-ad98-0a76c5d436ab";
+        private const string _postmark_server_token = "9f7a3892-ec08-4f65-9597-0f4ba30dddc1"; //test "69972700-ccae-45c5-ad98-0a76c5d436ab";
         private const string _postmark_server_url = "https://api.postmarkapp.com/email";
         private const string _Twilio_accountSid = "ACa7d5f9352223310828cefc8611ff9a49";//"AC19e6ab935a4a67ec96d0a22e946af13f";
         private const string _Twilio_authToken = "bf1eacdcaec23034b3d9745a933da7ef";//"d3d3eb56bc448bd4be5be0c1472b89ad";
@@ -126,7 +126,7 @@ namespace MBADCases.Controllers
 
                                     if (sFromdate != "") {
                                           _client = new HttpClient();
-                                        _client.DefaultRequestHeaders.Add("Authorization", "Bearer 3b349a5c1fa7f1de7a8ec20e28886b6d");
+                                        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _BubbleAPIHeaderAuth);
                                         _client.DefaultRequestHeaders.Accept.Add(
                                           new MediaTypeWithQualityHeaderValue("application/json"));
                                         //get messages at this time
