@@ -33,8 +33,9 @@ namespace MBADCases.Controllers
         private const string _BubbleAPIHeaderAuth = "3b349a5c1fa7f1de7a8ec20e28886b6d";
         private const string _BubbleAPIUserUrl = "https://alittlemore.love/version-test/api/1.1/obj/User";
         private const string _BubbleAPIMessagesUrl = "https://alittlemore.love/version-test/api/1.1/obj/messages";
-        private const string _postmark_fromemail = "info@alittlemore.love.com";
-        private const string _postmark_server_token = "9f7a3892-ec08-4f65-9597-0f4ba30dddc1"; //test "69972700-ccae-45c5-ad98-0a76c5d436ab";
+        private const string _postmark_fromemail = "info@alittlemore.love";
+        private const string _postmark_subject = "Message with A Little More Love";
+        private const string _postmark_server_token = "69972700-ccae-45c5-ad98-0a76c5d436ab";//"9f7a3892-ec08-4f65-9597-0f4ba30dddc1";//
         private const string _postmark_server_url = "https://api.postmarkapp.com/email";
         private const string _Twilio_accountSid = "ACa7d5f9352223310828cefc8611ff9a49";//"AC19e6ab935a4a67ec96d0a22e946af13f";
         private const string _Twilio_authToken = "bf1eacdcaec23034b3d9745a933da7ef";//"d3d3eb56bc448bd4be5be0c1472b89ad";
@@ -52,11 +53,12 @@ namespace MBADCases.Controllers
         //private const string _Twilio_authToken = "d3d3eb56bc448bd4be5be0c1472b89ad"; 
         //private const string _Twilio_MessagingServiceSid = "MG5a5b683ce82dce34d0767afac46d665e"; 
         ////#YARDILLO DEV END#
-
+        private mpclubresp omastermessage = new mpclubresp();
         [MapToApiVersion("1.0")]
         [HttpPost()]
         public IActionResult Post(string id)
         {
+           
             StringBuilder slog = new StringBuilder();
             slog.Append("Service started");
             try
@@ -167,7 +169,7 @@ namespace MBADCases.Controllers
                                             {
                                              
                                                 slog.AppendLine(",Use case 1 : User : " + u._id + " " + u.subscription_option_os_subscription_types.ToUpper() + " , message send to all : " + omess.sent_to_all_boolean);
-
+                                                
                                                 SendMessage(u, omess, slog);
                                             }
 
@@ -257,12 +259,16 @@ namespace MBADCases.Controllers
                 slog.AppendLine(",Service Ended");
                 mpclubresp ompcl = new mpclubresp();
                 ompcl.slog = slog.ToString();
+                omastermessage.slog = slog.ToString();
+                SendLogToMpclub();
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ompcl);
             }
             catch (Exception ex)
             {
                 slog.AppendLine(",Service Exception: ");
                 slog.AppendLine(ex.ToString());
+                omastermessage.slog = slog.ToString();
+                SendLogToMpclub();
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status417ExpectationFailed, slog.ToString());
             }
         }
@@ -274,22 +280,37 @@ namespace MBADCases.Controllers
         {
             try
             {
-
+                omastermessage.SendMessageTo.Add(new SendMessage() { user = ouser, message = omess });
 
                 if (ouser.delivery_method_option_os_delivery_method.ToUpper() == "EMAIL")
                 {
                     //send an email this message to this user
                     string sbody;
-                    //string sfromemail = "info@alittlemore.love.com";
-                    //string server_token = "69972700-ccae-45c5-ad98-0a76c5d436ab";
-                    string stoemail = ouser.authentication.email.email;
-                    string ssubject = omess.type_of_message_option_os_message_types;
+
+                    PostmarkEmail opostmaremail = new PostmarkEmail();
+                                   
+
+                    opostmaremail.From = _postmark_fromemail;
+                    opostmaremail.To = ouser.authentication.email.email;
+                    opostmaremail.Subject = _postmark_subject;
+                    opostmaremail.TextBody = omess.message_text;
+                    opostmaremail.HtmlBody = "" + omess.message_text + "<br/><br/><br/>Sent from and with <a href='https://alittlemore.love/' target='_blank'>A Little More Love</a>";
+                    opostmaremail.MessageStream = "outbound";
+                    opostmaremail.TrackOpens = true;
+
                     HttpClient _client = new HttpClient();
                     _client.DefaultRequestHeaders.Add("X-Postmark-Server-Token", _postmark_server_token);
-                    sbody = "{\"From\":\"" + _postmark_fromemail + "\",\"To\":\"" + stoemail + "\",\"Subject\":\"" + ssubject + "\"\"TrackOpens\": true,\"TextBody\":\"HellodearPostmarkuser.\",\"HtmlBody\":\"<html><body>" + omess.message_text + "</body></html>\",\"MessageStream\":\"outbound\"}";
+                                   
+                    var serialized = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(opostmaremail), Encoding.UTF8, "application/json");
 
-
-                    helperservice.PostRequest(_postmark_server_url, sbody, _client);
+                    using (HttpResponseMessage response = _client.PostAsync(_postmark_server_url, serialized).GetAwaiter().GetResult())
+                    {
+                        response.EnsureSuccessStatusCode();
+                        slog.Append("Response: ");
+                        string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                        slog.Append(responseBody);
+                         
+                    }
 
                     slog.AppendLine(",Message:" + omess._id + " " + omess.message_text + ", EMAIL SENT : " + ouser.authentication.email.email);
                 }
@@ -318,39 +339,10 @@ namespace MBADCases.Controllers
                         DateTime convertedDate = DateTime.Parse(omess.publish_text.ToString());
                         DateTime localDate = convertedDate.ToLocalTime();
 
-                        messageOptions.Body = omess.message_text + ", Pub date: " + omess.publish_text + ", timezone: " + omess.yardillo_location;
+                        messageOptions.Body = omess.message_text; // + ", Pub date: " + omess.publish_text + ", timezone: " + omess.yardillo_location;
 
                         var message = MessageResource.Create(messageOptions);
-                        ////send a text message this message to this user
-                        //// Find your Account SID and Auth Token at twilio.com/console
-                        //// and set the environment variables. See http://twil.io/secure
-                        //string accountSid = Environment.GetEnvironmentVariable("AC19e6ab935a4a67ec96d0a22e946af13f");
-                        //string authToken = Environment.GetEnvironmentVariable("d3d3eb56bc448bd4be5be0c1472b89ad");
-
-                        //TwilioClient.Init(accountSid, authToken);
-                        //if (ouser.phone_for_text_delivery_text != null)
-                        //{
-                        //    if (ouser.phone_for_text_delivery_text != "")
-                        //    {
-                        //        string tonumber = ouser.phone_for_text_delivery_text;
-                        //        if (ouser.phone_for_text_delivery_text.StartsWith("+1"))
-                        //        {
-                        //            tonumber = ouser.phone_for_text_delivery_text;
-                        //        }
-                        //        else
-                        //        {
-                        //            tonumber = "+1" + ouser.phone_for_text_delivery_text;
-                        //        }
-                        //        string fromnumber = "+13603585357"; //get the number from mpclub
-
-                        //        var message = MessageResource.Create(
-                        //        from: new Twilio.Types.PhoneNumber("+1" + ouser.phone_for_text_delivery_text),
-                        //        body: omess.message_text,
-                        //           to: new Twilio.Types.PhoneNumber(fromnumber)
-                        //        );
-                        //    }
-                        //}
-
+                       
                         slog.AppendLine(",Message:" + omess._id + " " + omess.message_text + ", SMS SENT " + messageOptions.Body);
                     }
                     catch (Exception e)
@@ -401,9 +393,62 @@ namespace MBADCases.Controllers
                 slog.AppendLine("Exception sending message: " + ex.ToString());
             }
         }
+
+        private void SendLogToMpclub()
+        {
+            try
+            {
+
+                string sblob = Newtonsoft.Json.JsonConvert.SerializeObject(omastermessage);
+                var _client = new HttpClient();
+
+                _client.DefaultRequestHeaders.Add("x-rapidapi-host", "yardillo.p.rapidapi.com");
+                _client.DefaultRequestHeaders.Add("x-rapidapi-key", "36d9952f5bmshdde26829370d654p1d5a5cjsnad7db9145569");
+                _client.DefaultRequestHeaders.Add("X-RapidAPI-Proxy-Secret", "6acc1280-fde1-11eb-b480-3f057f12dc26");
+                _client.DefaultRequestHeaders.Add("X-RapidAPI-User", "yardilloapi@gmail.com");
+                _client.DefaultRequestHeaders.Add("Y-Auth-Src", "yardillo");
+                _client.DefaultRequestHeaders.Add("Accept", "application/json");
+                //_client.DefaultRequestHeaders.Add("Content-Type", "application/json");
+                Case ocase = new Case() { Casetype = "mpclub", Blob = sblob };
+                //string strcase = Newtonsoft.Json.JsonConvert.SerializeObject(ocase);
+                StringBuilder slog = new StringBuilder();
+               // helperservice.GetRESTResponse("put","https://yardillo.azurewebsites.net/V1/case/mpclub", strcase, _client,slog);
+
+                       
+
+                var serialized = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(ocase), Encoding.UTF8, "application/json");
+
+                using (HttpResponseMessage response = _client.PutAsync("https://yardillo.azurewebsites.net/V1/case/mpclub", serialized).GetAwaiter().GetResult())
+                {
+                    response.EnsureSuccessStatusCode();
+                    slog.Append("Response: ");
+                    string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    slog.Append(responseBody);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                string s = ex.ToString();
+            }
+
+        }
 }
     public   class mpclubresp
     {
+     public   mpclubresp()
+        {
+            SendMessageTo = new List<SendMessage>();
+          
+        }
         public   string slog { get; set; }
+        public List<SendMessage> SendMessageTo { get; set; }
+  
+       
+    }
+    public class SendMessage
+    {
+        public mpclubuserResult user { get; set; }
+        public mpclubmessageResult message { get; set; }
     }
 }

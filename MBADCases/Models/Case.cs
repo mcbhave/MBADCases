@@ -33,6 +33,8 @@ namespace MBADCases.Models
         public List<CaseActivity> Activities { get; set; }
         public MessageResponse Message { get; set; }
         public string itemId { get; set; }
+
+        public string Blob { get; set; }
     }
     
     public class CaseActivity

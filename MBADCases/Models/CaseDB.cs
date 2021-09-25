@@ -31,6 +31,7 @@ namespace MBADCases.Models
         public string itemId { get; set; }
         public List<CaseDBfield> Fields { get; set; }
         //public List<CaseActivity> Activities { get; set; }
+        public string Blob { get; set; }
 
     }
 
