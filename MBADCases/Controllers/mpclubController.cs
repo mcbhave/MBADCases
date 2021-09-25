@@ -29,6 +29,30 @@ namespace MBADCases.Controllers
     [BasicAuthenticationHandler()]
     public class mpclubController : Controller
     {
+        //# MPCLUB DEV#
+        private const string _BubbleAPIHeaderAuth = "3b349a5c1fa7f1de7a8ec20e28886b6d";
+        private const string _BubbleAPIUserUrl = "https://alittlemore.love/version-test/api/1.1/obj/User";
+        private const string _BubbleAPIMessagesUrl = "https://alittlemore.love/version-test/api/1.1/obj/messages";
+        private const string _postmark_fromemail = "info@alittlemore.love.com";
+        private const string _postmark_server_token = "69972700-ccae-45c5-ad98-0a76c5d436ab";
+        private const string _postmark_server_url = "https://api.postmarkapp.com/email";
+        private const string _Twilio_accountSid = "ACa7d5f9352223310828cefc8611ff9a49";//"AC19e6ab935a4a67ec96d0a22e946af13f";
+        private const string _Twilio_authToken = "bf1eacdcaec23034b3d9745a933da7ef";//"d3d3eb56bc448bd4be5be0c1472b89ad";
+        private const string _Twilio_MessagingServiceSid = "MG5caf3746ed0272abbf031d78ec399cda";//"MG5a5b683ce82dce34d0767afac46d665e"
+                                                                                                //#MPCLUB DEV END#
+
+        ////#YARDILLO DEV#
+        //private const string _BubbleAPIHeaderAuth = "b37115857798bb37ef2e755833f51b26";
+        //private const string _BubbleAPIUserUrl = "https://wimsupapp.bubbleapps.io/version-test/api/1.1/obj/mpclubusers";
+        //private const string _BubbleAPIMessagesUrl = "https://wimsupapp.bubbleapps.io/version-test/api/1.1/obj/mpclubMessages";
+        //private const string _postmark_fromemail = "yardilloapi@gmail.com";
+        //private const string _postmark_server_token = "69972700-ccae-45c5-ad98-0a76c5d436ab";
+        //private const string _postmark_server_url = "https://api.postmarkapp.com/email";
+        //private const string _Twilio_accountSid = "AC19e6ab935a4a67ec96d0a22e946af13f"; 
+        //private const string _Twilio_authToken = "d3d3eb56bc448bd4be5be0c1472b89ad"; 
+        //private const string _Twilio_MessagingServiceSid = "MG5a5b683ce82dce34d0767afac46d665e"; 
+        ////#YARDILLO DEV END#
+
         [MapToApiVersion("1.0")]
         [HttpPost()]
         public IActionResult Post(string id)
@@ -40,7 +64,7 @@ namespace MBADCases.Controllers
                var timeZones = TimeZoneInfo.GetSystemTimeZones();
 
                 HttpClient _client = new HttpClient();
-                  _client.DefaultRequestHeaders.Add("Authorization", "Bearer 3b349a5c1fa7f1de7a8ec20e28886b6d");
+                  _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _BubbleAPIHeaderAuth);
                 _client.DefaultRequestHeaders.Accept.Add(
                   new MediaTypeWithQualityHeaderValue("application/json"));
                 //get users in the current timezone
@@ -48,7 +72,7 @@ namespace MBADCases.Controllers
                 StringBuilder slog1 = new StringBuilder();
 
                 string param = "";//"?constraints=[{\"key\":\"timezone_text\",\"constraint_type\": \"equals\", \"value\": \"" + timezone + "\"}]";
-                string susers = helperservice.GetRESTResponse("GET", "https://alittlemore.love/version-test/api/1.1/obj/User" + param, "", _client, slog1);
+                string susers = helperservice.GetRESTResponse("GET", _BubbleAPIUserUrl + param, "", _client, slog1);
 
                  mpclubuser colusers = Newtonsoft.Json.JsonConvert.DeserializeObject<mpclubuser>(susers);
 
@@ -75,11 +99,11 @@ namespace MBADCases.Controllers
                                     string timezone = item.timezone_id_text;// "India Standard Time";
                                     try
                                     {
-                                        if (timezone == "Eastern Daylight Time") { timezone = "America/New_York"; };
-                                        if (timezone == "Brasilia Standard Time") { timezone = "America/Eirunepe"; };
-                                        if (timezone == "Central Daylight Time") { timezone = "Central Standard Time"; };
-                                        if (timezone == "Mountain Daylight Time") { timezone = "Mountain Standard Time"; };
-                                        if (timezone == "Pacific Daylight Time") { timezone = "Pacific Standard Time"; };
+                                        //if (timezone == "Eastern Daylight Time") { timezone = "America/New_York"; };
+                                        //if (timezone == "Brasilia Standard Time") { timezone = "America/Eirunepe"; };
+                                        //if (timezone == "Central Daylight Time") { timezone = "Central Standard Time"; };
+                                        //if (timezone == "Mountain Daylight Time") { timezone = "Mountain Standard Time"; };
+                                        //if (timezone == "Pacific Daylight Time") { timezone = "Pacific Standard Time"; };
 
                                         TimeZoneInfo tzi = TZConvert.GetTimeZoneInfo(timezone);
                                         DateTime indianTime = TimeZoneInfo.ConvertTime(DateTime.Now,
@@ -108,8 +132,8 @@ namespace MBADCases.Controllers
                                         //get messages at this time
                                         // param = "?constraints=[{\"key\":\"publish_text\",\"constraint_type\": \"greater than\", \"value\": \"" + sFromdate + "\"},{\"key\":\"publish_text\",\"constraint_type\": \"less than\", \"value\": \"" + sToDate + "\"}]";
                                         param =   "?constraints=[{\"key\":\"publish_text\",\"constraint_type\": \"text contains\", \"value\": \"" + sFromdate + "\"}]";
-                                        slog.AppendLine(param);
-                                        string smessages = helperservice.GetRESTResponse("GET", "https://alittlemore.love/version-test/api/1.1/obj/messages" + param, "", _client, slog1);
+                                        slog.AppendLine(sFromdate);
+                                        string smessages = helperservice.GetRESTResponse("GET", _BubbleAPIMessagesUrl + param, "", _client, slog1);
                                     mpclubmessage colmessages = Newtonsoft.Json.JsonConvert.DeserializeObject<mpclubmessage>(smessages);
 
                                     if (colmessages!=null && colmessages.response.results != null)
@@ -126,9 +150,7 @@ namespace MBADCases.Controllers
                                         }
                                     }
                                     }
-
                                 }
-
                                 //if messages are avaliable
                                 if (allmessages.Count > 0)
                                 {
@@ -146,7 +168,7 @@ namespace MBADCases.Controllers
                                              
                                                 slog.AppendLine(",Use case 1 : User : " + u._id + " " + u.subscription_option_os_subscription_types.ToUpper() + " , message send to all : " + omess.sent_to_all_boolean);
 
-                                                sendMessage(u, omess, slog);
+                                                SendMessage(u, omess, slog);
                                             }
 
                                             else if (u.subscription_option_os_subscription_types.ToUpper() == "ALL THE LOVE" && (omess.sent_to_all_boolean == false))
@@ -154,57 +176,60 @@ namespace MBADCases.Controllers
                                                 slog.AppendLine(",Usecase 2 : User : " + u._id + " " + u.subscription_option_os_subscription_types.ToUpper() + " , message send to all : NULL, timezone : " + omess.yardillo_location);
 
                                                 //this is based on the sun 
-                                                if (u.x_astro_sign_option_os_astro_signs != null && u.x_astro_sign_option_os_astro_signs != "") {
+                                                if (omess.sun_signs_option_os_astro_signs != null ) {
                                                     // slog.AppendLine(",Astro: " + u.astro_sign_text + " : " + omess.sun_sign_text);
-                                                    if (omess.sun_signs_option_os_astro_signs != null) { 
+                                                    if (u.x_astro_sign_option_os_astro_signs != null) { 
                                                         if (omess.sun_signs_option_os_astro_signs.ToUpper() == u.x_astro_sign_option_os_astro_signs.ToUpper())
                                                         {
                                                             slog.AppendLine(", Astro sign : " + u.x_astro_sign_option_os_astro_signs);
-                                                            sendMessage(u, omess, slog);
+                                                            SendMessage(u, omess, slog);
                                                         }
                                                     }
                                                 }
-
-                                                //this is based on the   life 
-                                                if (u.life_path_number_option_os_numerology_life__ !=null && u.life_path_number_option_os_numerology_life__ != "") 
+                                                else if (omess.life_path_option_os_numerology_life__ != null ) 
                                                 {
-                                                   // slog.AppendLine(",LP: " + u.life_path_number_number + " : " + omess.life_path_number);
-                                                    if (omess.life_path_option_os_numerology_life__==u.life_path_number_option_os_numerology_life__)
+                                                    // slog.AppendLine(",LP: " + u.life_path_number_number + " : " + omess.life_path_number);
+                                                    if (u.life_path_number_option_os_numerology_life__ != null)
                                                     {
-                                                        slog.AppendLine(", LP : " + u.life_path_number_option_os_numerology_life__);
-                                                        sendMessage(u, omess, slog);
+                                                        if (omess.life_path_option_os_numerology_life__ == u.life_path_number_option_os_numerology_life__)
+                                                        {
+                                                            slog.AppendLine(", LP : " + u.life_path_number_option_os_numerology_life__);
+                                                            SendMessage(u, omess, slog);
+                                                        }
                                                     }
                                                 }
-                                                //this is based on the   MB 
-                                                if (u.myers_briggs_option_myers_briggs_types != null && u.myers_briggs_option_myers_briggs_types != "") {
+                                              else if (omess.mb_type1_option_myers_briggs_types != null ) {
                                                     //slog.AppendLine(",MB: " + u.myers_briggs_type_text + " : " + omess.message_text);
-                                                    if (omess.mb_type1_option_myers_briggs_types != null) { 
+                                                    if (u.myers_briggs_option_myers_briggs_types != null) { 
                                                     if (u.myers_briggs_option_myers_briggs_types.ToUpper() == omess.mb_type1_option_myers_briggs_types.ToUpper())
                                                         {
                                                             slog.AppendLine(", MB : " + u.myers_briggs_option_myers_briggs_types);
 
-                                                            sendMessage(u, omess, slog);
+                                                            SendMessage(u, omess, slog);
                                                         }
                                                     }
                                                 }
-
-                                                //this is based on the   life 
-                                                if (u.enneagram_number_option_os_enneagram_types != null && u.enneagram_number_option_os_enneagram_types != "") {
+                                               else if (omess.enneagram_type_option_os_enneagram_types != null) {
                                                     //slog.AppendLine(",Enn: " + u.enneagram_number_text + " : " + omess.enneagram_text);
                                                     if (u.enneagram_number_option_os_enneagram_types != null) { 
-                                                       if (u.enneagram_number_option_os_enneagram_types == omess.enneagram_type_option_os_enneagram_types)
+                                                       if (u.enneagram_number_option_os_enneagram_types.ToUpper() == omess.enneagram_type_option_os_enneagram_types.ToUpper())
                                                         {
                                                             slog.AppendLine(", En : " + u.enneagram_number_option_os_enneagram_types);
-                                                            sendMessage(u, omess, slog);
+                                                            SendMessage(u, omess, slog);
                                                         }
                                                     }
                                                 }
+                                                else
+                                                {
+                                                    slog.AppendLine(", Alert : " + u.enneagram_number_option_os_enneagram_types);
+                                                    SendMessage(u, omess, slog);
+                                                }
                                             }
-                                            else if (u.subscription_option_os_subscription_types.ToUpper() == "FREE LOVE" &&  (omess.subscription_type_option_os_subscription_types != null && omess.subscription_type_option_os_subscription_types == "Free"))
+                                            else if (u.subscription_option_os_subscription_types.ToUpper() == "FREE LOVE" &&  (omess.sent_to_all_boolean==true))
                                             {
                                                 slog.AppendLine(",Usecase 3 : User : " + u._id + " " + u.subscription_option_os_subscription_types.ToUpper() + " , message send to all : Free ");
 
-                                                sendMessage(u, omess, slog);
+                                                SendMessage(u, omess, slog);
                                             }
                                         }
                                     }
@@ -230,8 +255,9 @@ namespace MBADCases.Controllers
                 //}
 
                 slog.AppendLine(",Service Ended");
-
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, slog.ToString() );
+                mpclubresp ompcl = new mpclubresp();
+                ompcl.slog = slog.ToString();
+                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ompcl);
             }
             catch (Exception ex)
             {
@@ -244,126 +270,140 @@ namespace MBADCases.Controllers
         {
             if (start < end) { return start <= now && now <= end; } else { return !(end <= now && now <= start); }
         }
-        private bool sendMessage(mpclubuserResult ouser, mpclubmessageResult omess, StringBuilder slog)
+        private void SendMessage(mpclubuserResult ouser, mpclubmessageResult omess, StringBuilder slog)
         {
-            if (ouser.delivery_method_option_os_delivery_method.ToUpper() == "EMAIL")
+            try
             {
-                //send an email this message to this user
-                string sbody;
-                string sfromemail = "info@alittlemore.love.com";
-                string server_token = "69972700-ccae-45c5-ad98-0a76c5d436ab";
-                string stoemail = ouser.authentication.email.email;
-                string ssubject = omess.message_text;
-                HttpClient _client = new HttpClient();
-                _client.DefaultRequestHeaders.Add("X-Postmark-Server-Token", server_token);
-                sbody = "{\"From\":\"" + sfromemail + "\",\"To\":\"" + stoemail + "\",\"Subject\":\"" + ssubject + "\"\"TrackOpens\": true,\"TextBody\":\"HellodearPostmarkuser.\",\"HtmlBody\":\"<html><body><strong>Hello</strong>dearPostmarkuser.</body></html>\",\"MessageStream\":\"outbound\"}";
 
 
-                helperservice.PostRequest("https://api.postmarkapp.com/email", sbody, _client);
-                 
-                slog.AppendLine(",Message:" + omess._id + " " + omess.message_text + ", EMAIL SENT : " + ouser.authentication.email.email);
-            }
-            else if (ouser.delivery_method_option_os_delivery_method.ToUpper().Contains("TEXT"))
-            {
-                try
+                if (ouser.delivery_method_option_os_delivery_method.ToUpper() == "EMAIL")
                 {
-                    string tonumber = ouser.phone_for_text_delivery_text;
-                    if (ouser.phone_for_text_delivery_text.StartsWith("+1"))
-                    {
-                        tonumber = ouser.phone_for_text_delivery_text;
-                    }
-                    else
-                    {
-                        tonumber = "+1" + ouser.phone_for_text_delivery_text;
-                    }
-                   // string fromnumber = "+13603585357"; //get the number from mpclub
-                    var accountSid = "ACa7d5f9352223310828cefc8611ff9a49";//"AC19e6ab935a4a67ec96d0a22e946af13f";
-                    var authToken = "bf1eacdcaec23034b3d9745a933da7ef";//"d3d3eb56bc448bd4be5be0c1472b89ad";
-                    TwilioClient.Init(accountSid, authToken);
+                    //send an email this message to this user
+                    string sbody;
+                    //string sfromemail = "info@alittlemore.love.com";
+                    //string server_token = "69972700-ccae-45c5-ad98-0a76c5d436ab";
+                    string stoemail = ouser.authentication.email.email;
+                    string ssubject = omess.type_of_message_option_os_message_types;
+                    HttpClient _client = new HttpClient();
+                    _client.DefaultRequestHeaders.Add("X-Postmark-Server-Token", _postmark_server_token);
+                    sbody = "{\"From\":\"" + _postmark_fromemail + "\",\"To\":\"" + stoemail + "\",\"Subject\":\"" + ssubject + "\"\"TrackOpens\": true,\"TextBody\":\"HellodearPostmarkuser.\",\"HtmlBody\":\"<html><body>" + omess.message_text + "</body></html>\",\"MessageStream\":\"outbound\"}";
 
-                    var messageOptions = new CreateMessageOptions(
-                        new PhoneNumber(tonumber));
-                    messageOptions.MessagingServiceSid = "MG5caf3746ed0272abbf031d78ec399cda";// "MG5a5b683ce82dce34d0767afac46d665e";
 
-                    DateTime convertedDate = DateTime.Parse(omess.publish_text.ToString());
-                    DateTime localDate = convertedDate.ToLocalTime();
+                    helperservice.PostRequest(_postmark_server_url, sbody, _client);
 
-                    messageOptions.Body =   omess.message_text + ", Pub date: " + omess.publish_text + ", timezone: " + omess.yardillo_location;
-
-                    var message = MessageResource.Create(messageOptions);
-                    ////send a text message this message to this user
-                    //// Find your Account SID and Auth Token at twilio.com/console
-                    //// and set the environment variables. See http://twil.io/secure
-                    //string accountSid = Environment.GetEnvironmentVariable("AC19e6ab935a4a67ec96d0a22e946af13f");
-                    //string authToken = Environment.GetEnvironmentVariable("d3d3eb56bc448bd4be5be0c1472b89ad");
-
-                    //TwilioClient.Init(accountSid, authToken);
-                    //if (ouser.phone_for_text_delivery_text != null)
-                    //{
-                    //    if (ouser.phone_for_text_delivery_text != "")
-                    //    {
-                    //        string tonumber = ouser.phone_for_text_delivery_text;
-                    //        if (ouser.phone_for_text_delivery_text.StartsWith("+1"))
-                    //        {
-                    //            tonumber = ouser.phone_for_text_delivery_text;
-                    //        }
-                    //        else
-                    //        {
-                    //            tonumber = "+1" + ouser.phone_for_text_delivery_text;
-                    //        }
-                    //        string fromnumber = "+13603585357"; //get the number from mpclub
-
-                    //        var message = MessageResource.Create(
-                    //        from: new Twilio.Types.PhoneNumber("+1" + ouser.phone_for_text_delivery_text),
-                    //        body: omess.message_text,
-                    //           to: new Twilio.Types.PhoneNumber(fromnumber)
-                    //        );
-                    //    }
-                    //}
-                                       
-                    slog.AppendLine(",Message:" + omess._id + " " + omess.message_text + ", SMS SENT " + messageOptions.Body);
+                    slog.AppendLine(",Message:" + omess._id + " " + omess.message_text + ", EMAIL SENT : " + ouser.authentication.email.email);
                 }
-                catch(Exception e)
+                else if (ouser.delivery_method_option_os_delivery_method.ToUpper().Contains("TEXT"))
                 {
-                    slog.AppendLine(",Message:" + omess._id + " " + omess.message_text + ", SMS FAILED " + ouser.phone_for_text_delivery_text + " ," + e.ToString());
+                    try
+                    {
+                        string tonumber = ouser.phone_for_text_delivery_text;
+                        if (ouser.phone_for_text_delivery_text.StartsWith("+1"))
+                        {
+                            tonumber = ouser.phone_for_text_delivery_text;
+                        }
+                        else
+                        {
+                            tonumber = "+1" + ouser.phone_for_text_delivery_text;
+                        }
+                        // string fromnumber = "+13603585357"; //get the number from mpclub
+                        //var accountSid = "ACa7d5f9352223310828cefc8611ff9a49";//"AC19e6ab935a4a67ec96d0a22e946af13f";
+                        //var authToken = "bf1eacdcaec23034b3d9745a933da7ef";//"d3d3eb56bc448bd4be5be0c1472b89ad";
+                        TwilioClient.Init(_Twilio_accountSid, _Twilio_authToken);
+
+                        var messageOptions = new CreateMessageOptions(
+                            new PhoneNumber(tonumber));
+                        messageOptions.MessagingServiceSid = _Twilio_MessagingServiceSid;// "MG5caf3746ed0272abbf031d78ec399cda";// "MG5a5b683ce82dce34d0767afac46d665e";
+
+                        DateTime convertedDate = DateTime.Parse(omess.publish_text.ToString());
+                        DateTime localDate = convertedDate.ToLocalTime();
+
+                        messageOptions.Body = omess.message_text + ", Pub date: " + omess.publish_text + ", timezone: " + omess.yardillo_location;
+
+                        var message = MessageResource.Create(messageOptions);
+                        ////send a text message this message to this user
+                        //// Find your Account SID and Auth Token at twilio.com/console
+                        //// and set the environment variables. See http://twil.io/secure
+                        //string accountSid = Environment.GetEnvironmentVariable("AC19e6ab935a4a67ec96d0a22e946af13f");
+                        //string authToken = Environment.GetEnvironmentVariable("d3d3eb56bc448bd4be5be0c1472b89ad");
+
+                        //TwilioClient.Init(accountSid, authToken);
+                        //if (ouser.phone_for_text_delivery_text != null)
+                        //{
+                        //    if (ouser.phone_for_text_delivery_text != "")
+                        //    {
+                        //        string tonumber = ouser.phone_for_text_delivery_text;
+                        //        if (ouser.phone_for_text_delivery_text.StartsWith("+1"))
+                        //        {
+                        //            tonumber = ouser.phone_for_text_delivery_text;
+                        //        }
+                        //        else
+                        //        {
+                        //            tonumber = "+1" + ouser.phone_for_text_delivery_text;
+                        //        }
+                        //        string fromnumber = "+13603585357"; //get the number from mpclub
+
+                        //        var message = MessageResource.Create(
+                        //        from: new Twilio.Types.PhoneNumber("+1" + ouser.phone_for_text_delivery_text),
+                        //        body: omess.message_text,
+                        //           to: new Twilio.Types.PhoneNumber(fromnumber)
+                        //        );
+                        //    }
+                        //}
+
+                        slog.AppendLine(",Message:" + omess._id + " " + omess.message_text + ", SMS SENT " + messageOptions.Body);
+                    }
+                    catch (Exception e)
+                    {
+                        slog.AppendLine(",Message:" + omess._id + " " + omess.message_text + ", SMS FAILED " + ouser.phone_for_text_delivery_text + " ," + e.ToString());
+                    }
+
+
                 }
-               
+                else if (ouser.delivery_method_option_os_delivery_method.ToUpper() == "WHATSAPP")
+                {
+                    try
+                    {
+                        //// Find your Account SID and Auth Token at twilio.com/console
+                        //// and set the environment variables. See http://twil.io/secure
+                        //string accountSid = Environment.GetEnvironmentVariable("TWILIO_ACCOUNT_SID");
+                        //string authToken = Environment.GetEnvironmentVariable("TWILIO_AUTH_TOKEN");
+
+                        //TwilioClient.Init(accountSid, authToken);
+
+                        //var conversation = ConversationResource.Create(
+                        //    messagingServiceSid: "MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                        //    friendlyName: "Friendly Conversation"
+                        //);
+
+                        var accountSid = "ACa7d5f9352223310828cefc8611ff9a49";//"AC19e6ab935a4a67ec96d0a22e946af13f";
+                        var authToken = "bf1eacdcaec23034b3d9745a933da7ef";//"d3d3eb56bc448bd4be5be0c1472b89ad";
+                        TwilioClient.Init(accountSid, authToken);
+
+                        var messageOptions = new CreateMessageOptions(
+                            new PhoneNumber("whatsapp:+" + ouser.phone_for_text_delivery_text));
+                        messageOptions.From = new PhoneNumber("whatsapp:+17372379901");
+                        messageOptions.Body = omess.message_text;
+
+                        var message = MessageResource.Create(messageOptions);
+                    }
+                    catch (Exception e)
+                    {
+                        slog.AppendLine(",Message:" + omess._id + " " + omess.message_text + ", WhatsAPP FAILED " + ouser.phone_for_text_delivery_text + " ," + e.ToString());
+                    }
+                }
+
                 
             }
-            else if (ouser.delivery_method_option_os_delivery_method.ToUpper() == "WHATSAPP")
+
+            catch (Exception ex)
             {
-                try {
-                    //// Find your Account SID and Auth Token at twilio.com/console
-                    //// and set the environment variables. See http://twil.io/secure
-                    //string accountSid = Environment.GetEnvironmentVariable("TWILIO_ACCOUNT_SID");
-                    //string authToken = Environment.GetEnvironmentVariable("TWILIO_AUTH_TOKEN");
-
-                    //TwilioClient.Init(accountSid, authToken);
-
-                    //var conversation = ConversationResource.Create(
-                    //    messagingServiceSid: "MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                    //    friendlyName: "Friendly Conversation"
-                    //);
-
-                    var accountSid = "ACa7d5f9352223310828cefc8611ff9a49";//"AC19e6ab935a4a67ec96d0a22e946af13f";
-                    var authToken = "bf1eacdcaec23034b3d9745a933da7ef";//"d3d3eb56bc448bd4be5be0c1472b89ad";
-                    TwilioClient.Init(accountSid, authToken);
-
-                    var messageOptions = new CreateMessageOptions(
-                        new PhoneNumber("whatsapp:+" + ouser.phone_for_text_delivery_text));
-                    messageOptions.From = new PhoneNumber("whatsapp:+17372379901");
-                    messageOptions.Body = omess.message_text;
-
-                    var message = MessageResource.Create(messageOptions);
-                }
-                catch (Exception e)
-            {
-                slog.AppendLine(",Message:" + omess._id + " " + omess.message_text + ", WhatsAPP FAILED " + ouser.phone_for_text_delivery_text + " ," + e.ToString());
+                slog.AppendLine("Exception sending message: " + ex.ToString());
             }
         }
-
-            return true;
-        }
+}
+    public   class mpclubresp
+    {
+        public   string slog { get; set; }
     }
-    
-  }
+}

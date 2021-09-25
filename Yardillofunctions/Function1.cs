@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
- 
+using Newtonsoft.Json;
 namespace Yardillofunctions
 {
     public static class Function1
@@ -15,26 +15,32 @@ namespace Yardillofunctions
         [FunctionName("Function1")]
         public static async Task RunAsync([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, ILogger log)
         {
-             var srand = RandomString(5, true);
+            var obj;
+            string ss = Newtonsoft.Json.JsonConvert.SerializeObject(obj);
+            var srand = RandomString(5, true);
             var client = new HttpClient();
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Put,
                 RequestUri = new Uri("https://yardillo.azurewebsites.net/V1/case/CallScheduler"),
                 Headers =
-    {
-        { "x-rapidapi-host", "yardillo.p.rapidapi.com" },
-        { "x-rapidapi-key", "36d9952f5bmshdde26829370d654p1d5a5cjsnad7db9145569" },
-        {"X-RapidAPI-Proxy-Secret","6acc1280-fde1-11eb-b480-3f057f12dc26"},
-        { "X-RapidAPI-User", "yardilloapi@gmail.com" },
-        { "Y-Auth-Src", "yardillo" },
-    },
+                {
+                    { "x-rapidapi-host", "yardillo.p.rapidapi.com" },
+                    { "x-rapidapi-key", "36d9952f5bmshdde26829370d654p1d5a5cjsnad7db9145569" },
+                    { "X-RapidAPI-Proxy-Secret", "6acc1280-fde1-11eb-b480-3f057f12dc26" },
+                    { "X-RapidAPI-User", "yardilloapi@gmail.com" },
+                    { "Y-Auth-Src", "yardillo" },
+                },
+                Content = new StringContent("{\"Casenumber\":1,\"Casetitle\":\"mpclub\", Casestatus\":\"Open\",\"Casedescription\":\"Open\"" +
+                ", \"Fields\":[{fieldid\": \"Category\"," +
+                "                \"value\": \"\" }]}   ")
 
-                Content = new StringContent("{\r\n    \"Casenumber\":" + _random.Next(1, 1000000) + ",\r\n    \"Casetitle\": \"" + DateTime.Now.ToString() + "\",\r\n    \"Casestatus\": \"Open\",\r\n  " +
-                " \"Casedescription\": \"Sample case of type mongodb " + DateTime.Now.ToString() + "\",\r\n    \"Fields\": [\r\n     " +
-                " {\r\n            \"Fieldid\": \"field one\",\r\n            \"Value\": \"1\"\r\n        },\r\n        {\r\n     " +
-                "\"Fieldid\": \"fieldA\",\r\n            \"Value\": \"field value A\"\r\n        },\r\n        {\r\n     " +
-                "\"Fieldid\": \"fieldB\",\r\n            \"Value\": \"\"\r\n        }\r\n    ]\r\n}")
+              
+                //Content = new StringContent("{\r\n    \"Casenumber\":1,\r\n    \"Casetitle\": \"" + DateTime.Now.ToString() + "\",\r\n    \"Casestatus\": \"Open\",\r\n  " +
+                //" \"Casedescription\": \"Sample case of type mongodb " + DateTime.Now.ToString() + "\",\r\n    \"Fields\": [\r\n     " +
+                //" {\r\n            \"Fieldid\": \"" + sbody + "\",\r\n            \"Value\": \"1\"\r\n        },\r\n        {\r\n     " +
+                //"\"Fieldid\": \"fieldA\",\r\n            \"Value\": \"field value A\"\r\n        },\r\n        {\r\n     " +
+                //"\"Fieldid\": \"fieldB\",\r\n            \"Value\": \"\"\r\n        }\r\n    ]\r\n}")
                 {
                     Headers =
         {
@@ -69,8 +75,9 @@ namespace Yardillofunctions
                 var @char = (char)_random.Next(offset, offset + lettersOffset);
                 builder.Append(@char);
             }
-
+           
             return lowerCase ? builder.ToString().ToLower() : builder.ToString();
         }
     }
+   
 }
