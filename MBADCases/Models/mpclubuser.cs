@@ -86,6 +86,8 @@ namespace MBADCases.Models
         public bool active1_boolean { get; set; }
         public string delivery_method_option_os_delivery_method { get; set; }
         public string phone_for_text_delivery_text { get; set; }
+
+        public string phone_country_code_text { get; set; }
         public string x_astro_sign_option_os_astro_signs { get; set; }
         public DateTime birthday___time_date { get; set; }
         public string subscription_option_os_subscription_types { get; set; }

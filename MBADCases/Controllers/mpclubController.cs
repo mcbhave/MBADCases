@@ -31,8 +31,8 @@ namespace MBADCases.Controllers
     {
         //# MPCLUB DEV#
         private const string _BubbleAPIHeaderAuth = "3b349a5c1fa7f1de7a8ec20e28886b6d";
-        private const string _BubbleAPIUserUrl = "https://alittlemore.love/version-test/api/1.1/obj/User";
-        private const string _BubbleAPIMessagesUrl = "https://alittlemore.love/version-test/api/1.1/obj/messages";
+        private const string _BubbleAPIUserUrl = "https://alittlemore.love/api/1.1/obj/User"; //"https://alittlemore.love/version-test/api/1.1/obj/User";
+        private const string _BubbleAPIMessagesUrl = "https://alittlemore.love/api/1.1/obj/messages";
         private const string _postmark_fromemail = "info@alittlemore.love";
         private const string _postmark_subject = "Message with A Little More Love";
         private const string _postmark_server_token = "69972700-ccae-45c5-ad98-0a76c5d436ab";//"9f7a3892-ec08-4f65-9597-0f4ba30dddc1";//
@@ -54,6 +54,9 @@ namespace MBADCases.Controllers
         //private const string _Twilio_MessagingServiceSid = "MG5a5b683ce82dce34d0767afac46d665e"; 
         ////#YARDILLO DEV END#
         private mpclubresp omastermessage = new mpclubresp();
+        private int _totalusers;
+        private int _totalmessages;
+        private bool isexception = false;
         [MapToApiVersion("1.0")]
         [HttpPost()]
         public IActionResult Post(string id)
@@ -154,6 +157,7 @@ namespace MBADCases.Controllers
                                     }
                                 }
                                 //if messages are avaliable
+                                _totalmessages = allmessages.Count;
                                 if (allmessages.Count > 0)
                                 {
                                     foreach (mpclubmessageResult omess in allmessages)
@@ -244,18 +248,6 @@ namespace MBADCases.Controllers
                     }
                 }
 
-
-                //var currtimeoffset = TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow);
-                //DateTime sdate = DateTime.Now;
-                //switch (sdate.Hour)
-                //{
-                //    case 1:
-                //        break;
-                //    default:
-                //        break;
-
-                //}
-
                 slog.AppendLine(",Service Ended");
                 mpclubresp ompcl = new mpclubresp();
                 ompcl.slog = slog.ToString();
@@ -265,6 +257,7 @@ namespace MBADCases.Controllers
             }
             catch (Exception ex)
             {
+                isexception = true;
                 slog.AppendLine(",Service Exception: ");
                 slog.AppendLine(ex.ToString());
                 omastermessage.slog = slog.ToString();
@@ -285,7 +278,7 @@ namespace MBADCases.Controllers
                 if (ouser.delivery_method_option_os_delivery_method.ToUpper() == "EMAIL")
                 {
                     //send an email this message to this user
-                    string sbody;
+                    //string sbody;
 
                     PostmarkEmail opostmaremail = new PostmarkEmail();
                                    
@@ -295,7 +288,7 @@ namespace MBADCases.Controllers
                     opostmaremail.Subject = _postmark_subject;
                     opostmaremail.TextBody = omess.message_text;
                     opostmaremail.HtmlBody = "" + omess.message_text + "<br/><br/><br/>Sent from and with <a href='https://alittlemore.love/' target='_blank'>A Little More Love</a>";
-                    opostmaremail.MessageStream = "outbound";
+                    opostmaremail.MessageStream = "broadcast";
                     opostmaremail.TrackOpens = true;
 
                     HttpClient _client = new HttpClient();
@@ -319,13 +312,13 @@ namespace MBADCases.Controllers
                     try
                     {
                         string tonumber = ouser.phone_for_text_delivery_text;
-                        if (ouser.phone_for_text_delivery_text.StartsWith("+1"))
+                        if (ouser.phone_for_text_delivery_text.StartsWith("+"))
                         {
-                            tonumber = ouser.phone_for_text_delivery_text;
+                            tonumber = ouser.phone_country_code_text + ouser.phone_for_text_delivery_text;
                         }
                         else
                         {
-                            tonumber = "+1" + ouser.phone_for_text_delivery_text;
+                            tonumber = "+" + ouser.phone_country_code_text +  ouser.phone_for_text_delivery_text;
                         }
                         // string fromnumber = "+13603585357"; //get the number from mpclub
                         //var accountSid = "ACa7d5f9352223310828cefc8611ff9a49";//"AC19e6ab935a4a67ec96d0a22e946af13f";
@@ -368,13 +361,24 @@ namespace MBADCases.Controllers
                         //    friendlyName: "Friendly Conversation"
                         //);
 
-                        var accountSid = "ACa7d5f9352223310828cefc8611ff9a49";//"AC19e6ab935a4a67ec96d0a22e946af13f";
-                        var authToken = "bf1eacdcaec23034b3d9745a933da7ef";//"d3d3eb56bc448bd4be5be0c1472b89ad";
-                        TwilioClient.Init(accountSid, authToken);
-
+                        //var accountSid = "ACa7d5f9352223310828cefc8611ff9a49";//"AC19e6ab935a4a67ec96d0a22e946af13f";
+                        //var authToken = "bf1eacdcaec23034b3d9745a933da7ef";//"d3d3eb56bc448bd4be5be0c1472b89ad";
+                        TwilioClient.Init(_Twilio_accountSid, _Twilio_authToken);
+                        string tonumber = ouser.phone_for_text_delivery_text;
+                        if (ouser.phone_for_text_delivery_text.StartsWith("+"))
+                        {
+                            tonumber = ouser.phone_country_code_text + ouser.phone_for_text_delivery_text;
+                        }
+                        else
+                        {
+                            tonumber = "+" + ouser.phone_country_code_text + ouser.phone_for_text_delivery_text;
+                        }
                         var messageOptions = new CreateMessageOptions(
-                            new PhoneNumber("whatsapp:+" + ouser.phone_for_text_delivery_text));
-                        messageOptions.From = new PhoneNumber("whatsapp:+17372379901");
+                            new PhoneNumber("whatsapp:" + tonumber));
+                        messageOptions.From = new PhoneNumber("whatsapp:" + "+17372379901");
+
+                        messageOptions.MessagingServiceSid = _Twilio_MessagingServiceSid;
+
                         messageOptions.Body = omess.message_text;
 
                         var message = MessageResource.Create(messageOptions);
@@ -390,6 +394,7 @@ namespace MBADCases.Controllers
 
             catch (Exception ex)
             {
+                isexception = true;
                 slog.AppendLine("Exception sending message: " + ex.ToString());
             }
         }
@@ -409,7 +414,10 @@ namespace MBADCases.Controllers
                 _client.DefaultRequestHeaders.Add("Y-Auth-Src", "yardillo");
                 _client.DefaultRequestHeaders.Add("Accept", "application/json");
                 //_client.DefaultRequestHeaders.Add("Content-Type", "application/json");
-                Case ocase = new Case() { Casetype = "mpclub", Blob = sblob };
+                string Casetitle = "Success";
+                if(isexception == true) { Casetitle = "Exception"; }
+                
+                Case ocase = new Case() { Casetype = "mpclub", Blob = sblob, Casetitle= Casetitle  };
                 //string strcase = Newtonsoft.Json.JsonConvert.SerializeObject(ocase);
                 StringBuilder slog = new StringBuilder();
                // helperservice.GetRESTResponse("put","https://yardillo.azurewebsites.net/V1/case/mpclub", strcase, _client,slog);
@@ -429,6 +437,7 @@ namespace MBADCases.Controllers
             }
             catch (Exception ex)
             {
+                isexception = true;
                 string s = ex.ToString();
             }
 
