@@ -124,7 +124,7 @@ namespace MBADCases.Services
 
                 CaseTypeService octsr = new CaseTypeService(_casetypecollection);
                 oFilterDoc = ofd.And(clauses);
-              colC = _casecollectionlist.Find(oFilterDoc ).ToList();
+              colC = _casecollectionlist.Find(oFilterDoc ).Limit(10).ToList();
                 List<Case> oretcase = new List<Case>();
                 if (colC != null)
                 {

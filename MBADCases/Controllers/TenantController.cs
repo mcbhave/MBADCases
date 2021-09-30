@@ -31,11 +31,13 @@ namespace MBADCases.Controllers
             try
             {
                 _tenantservice.Gettenant(tenantid);
-                List<Tenant> ocase = _tenantservice.Get();
+           
+                List<Tenant> ocase = _tenantservice.GetByUserid(usrid);
                 return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, ocase);
             }
             catch { throw; }
          }
+
         // GET api/<CaseController>/5
         [MapToApiVersion("1.0")]
         [HttpGet("{id:length(24)}", Name = "GetTenant")]
@@ -189,7 +191,11 @@ namespace MBADCases.Controllers
                 tenant.Dbconnection = "";
                 //check if tenant with user name exists
                 tenant.Createuser = usrid;
+                tenant._owner = usrid;
                 tenant.Createdate = DateTime.UtcNow.ToString();
+                Tenant ocase = _tenantservice.GetByName(tenantid);
+                tenant.YAuthSource = ocase.YAuthSource;
+                if (tenant.YAuthSource == null){ tenant.YAuthSource = "yardillo"; }
               
                 var oretcase = _tenantservice.Create(tenant);
                 oms = _tenantservice.SetMessage(oretcase._id, "", "PUT", "200", "Tenant insert", usrid, null);

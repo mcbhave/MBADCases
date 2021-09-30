@@ -13,6 +13,7 @@ namespace MBADCases.Services
     public class TenantService
     {
         private readonly IMongoCollection<Tenant> _tenant;
+        private readonly IMongoCollection<TenantUser> _tenantusercoll;
         private IMongoDatabase MBADDatabase;
         ICasesDatabaseSettings _settings;
         private string _tenantid;
@@ -24,7 +25,7 @@ namespace MBADCases.Services
                 var client = new MongoClient(settings.ConnectionString);
                 MBADDatabase = client.GetDatabase(settings.DatabaseName);
                 _tenant = MBADDatabase.GetCollection<Tenant>("Tenants");
-               
+                _tenantusercoll = MBADDatabase.GetCollection<TenantUser>("TenantUsers");
             }
             catch { throw; }
         }
@@ -39,7 +40,13 @@ namespace MBADCases.Services
         }
         public List<Tenant> Get() =>
             _tenant.Find<Tenant>(book => book.Tenantname == _tenantid).ToList();
-     
+
+        public List<Tenant> GetByUserid(string id) {
+            //TenantUser ou = _tenantusercoll.Find<TenantUser>(x => x.Userid == id).FirstOrDefault();
+           return _tenant.Find<Tenant>(book => book.Createuser == id).ToList();
+
+        }
+
         public Tenant Get(string id)
         {
             try { return _tenant.Find<Tenant>(book => book._id == id).FirstOrDefault(); } catch { throw; };
@@ -49,6 +56,7 @@ namespace MBADCases.Services
         {
             try { return _tenant.Find<Tenant>(book => book.Tenantname == name).FirstOrDefault(); } catch { throw; };
         }
+       
         public Tenant Create(Tenant ocase)
         {
             try
@@ -76,6 +84,8 @@ namespace MBADCases.Services
                     ousr.Tenantname = ocase.Tenantname.ToUpper();
                     ousr.Createdate = DateTime.UtcNow.ToString();
                     ousr.Createuserid = ocase.Createuser;
+                    ousr.YAuthSource = ocase.YAuthSource;
+                    ousr.Role = "ADMIN";
                     IMongoCollection<TenantUser> _tenantusercoll;
                     _tenantusercoll = MBADDatabase.GetCollection<TenantUser>("TenantUsers");
                     _tenantusercoll.InsertOne(ousr);
@@ -90,6 +100,7 @@ namespace MBADCases.Services
                 throw;
             }
         }
+        
         //public Tenant GetByName(string name)
         //{
         //    try

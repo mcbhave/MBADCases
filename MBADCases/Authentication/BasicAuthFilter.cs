@@ -121,12 +121,14 @@ namespace MBADCases.Authentication
                                     else
                                     {
                                         allpass = false;
-                                        omess.Messageype = "Unauthorized";
+                                        omess.Messageype = "Unauthorized, You do not have access to this Tenant";
                                         omess.Messagecode = "00005";
+                                        
+
 
                                     }
                                 }
-                                {
+                                else{
                                     //pick the top one
                                     context.HttpContext.Session.SetString("mbadtanent", ou[0].Tenantname);
                                     omess.Tenantid = ou[0].Tenantname;
@@ -242,19 +244,18 @@ namespace MBADCases.Authentication
                         }
                     }
                 }
-
-             
-                ReturnUnauthorizedResult(context);
+                _messagemaster.InsertOneAsync(omess);
+                ReturnUnauthorizedResult(context, omess);
             }
             catch (FormatException e)
             {
                 omess.MessageDesc =  "Unabel to validate user" + e.ToString();
-               // _messagemaster.InsertOneAsync(omess);
-                ReturnUnauthorizedResult(context);
+               _messagemaster.InsertOneAsync(omess);
+                ReturnUnauthorizedResult(context, omess);
             }
             finally
             {
-                _messagemaster.InsertOneAsync(omess);
+               // _messagemaster.InsertOneAsync(omess);
             }
         }
 
@@ -264,70 +265,31 @@ namespace MBADCases.Authentication
         //    return true;// userService.IsValidUser(username, password);
         //}
 
-        private void ReturnUnauthorizedResult(AuthorizationFilterContext context)
+        private void ReturnUnauthorizedResult(AuthorizationFilterContext context,Message message)
         {
             // Return 401 and a basic authentication challenge (causes browser to show login dialog)
             context.HttpContext.Response.Headers["WWW-Authenticate"] = $"Basic realm=\"{_realm}\"";
+            context.HttpContext.Response.Headers["Content-type"] = "application/json";
+            Errorresp errmess = new Errorresp();
+            errmess.type = message.Callertype;
+            errmess.title = message.Messageype;
+            errmess.status = message.Messagecode;
+            errmess.traceId = message._id;
+
+            var bytes = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(errmess));
+
+            context.HttpContext.Response.Body.WriteAsync(bytes, 0, bytes.Length);
             context.Result = new UnauthorizedResult();
+
         }
     }
-    //public class BasicAuthFilter : Attribute, IAuthenticationFilter
-    //{
-    //    internal const string AuthTokenParmName = "Authorization";
-    //    public BasicAuthFilter() : base()
-    //    {
-
-    //    }
-
-    //    public bool AllowMultiple => throw new NotImplementedException();
-
-    //    public Task AuthenticateAsync(HttpAuthenticationContext context, CancellationToken cancellationToken)
-    //    {
-    //        string encryptedToken = default(string);
-    //        string token = default(string); ;
-    //        IEnumerable<string> headerValues;
-    //        HttpRequestMessage request = context.ActionContext.Request;
-    //        if (request.Headers.TryGetValues(AuthTokenParmName, out headerValues))
-    //        {
-    //            encryptedToken = headerValues.First();
-    //            if (string.IsNullOrWhiteSpace(encryptedToken))
-    //            {
-
-    //                throw new Exception("Authorization header missing");
-    //            }
-    //            token = Base64Decode(encryptedToken);
-    //            // string authHeader = request.Headers.TryGetValues(AuthTokenParmName, out headerValues);
-    //            //AuthenticationHeaderValue authHeaderValue = AuthenticationHeaderValue.Parse(authHeader);
-    //            if (string.IsNullOrWhiteSpace(token))
-    //            {
-
-    //                throw new Exception("Authorization header wrong");
-    //            }
-    //            else
-    //            {
-    //                if (token[0] == '{')
-    //                {
-
-
-    //                    AuthenticationContext tokenDetails = (AuthenticationContext)Newtonsoft.Json.JsonConvert.DeserializeObject(token);
-    //                    if (string.IsNullOrWhiteSpace(tokenDetails.ToString()))
-    //                    {
-
-    //                    }
-    //                }
-    //            }
-    //        }
-
-    //        throw new NotImplementedException();
-    //    }
-    //    private string Base64Decode(string tok)
-    //    {
-    //        byte[] data = Convert.FromBase64String(tok);
-    //        return Encoding.UTF8.GetString(data);
-    //    }
-    //    public Task ChallengeAsync(HttpAuthenticationChallengeContext context, CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
+     public class Errorresp
+    {
+         
+        public string type { get; set; }
+        public string title { get; set; }
+        public string status { get; set; }
+        public string traceId { get; set; }
+ 
+    }
 }

@@ -41,7 +41,7 @@ namespace MBADCases.Controllers
         private const string _Twilio_authToken = "bf1eacdcaec23034b3d9745a933da7ef";//"d3d3eb56bc448bd4be5be0c1472b89ad";
         private const string _Twilio_MessagingServiceSid = "MG5caf3746ed0272abbf031d78ec399cda";//"MG5a5b683ce82dce34d0767afac46d665e"
                                                                                                 //#MPCLUB DEV END#
-
+        private const int _timer_minutes = 11;
         ////#YARDILLO DEV#
         //private const string _BubbleAPIHeaderAuth = "b37115857798bb37ef2e755833f51b26";
         //private const string _BubbleAPIUserUrl = "https://wimsupapp.bubbleapps.io/version-test/api/1.1/obj/mpclubusers";
@@ -114,7 +114,7 @@ namespace MBADCases.Controllers
                                         DateTime indianTime = TimeZoneInfo.ConvertTime(DateTime.Now,
                                             TimeZoneInfo.FindSystemTimeZoneById(tzi.Id));
                                         start = new TimeSpan(indianTime.Hour, indianTime.Minute  , 0);
-                                        end = new TimeSpan(indianTime.Hour, indianTime.Minute + 15, 0);
+                                        end = new TimeSpan(indianTime.Hour, indianTime.Minute + _timer_minutes, 5);
                                         slog.AppendLine(timezone);
                                         slog.AppendLine(" current time:" + indianTime.ToString());
                                         //var timezone2 = TimeZoneInfo.FindSystemTimeZoneById(timezone);
